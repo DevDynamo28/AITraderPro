@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Reflections - Agentic AI Trader</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <style>
+        .card {
+            margin-bottom: 20px;
+        }
+        
+        pre {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <header class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
+            <a href="/" class="text-decoration-none">
+                <h1 class="h2">Agentic AI Trader</h1>
+            </a>
+            <span class="fs-4">Trading Reflections</span>
+        </header>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Reflection Period</span>
+                        <div class="btn-group" role="group">
+                            <a href="/reflection?period=daily" class="btn btn-sm btn-outline-primary {% if period == 'daily' %}active{% endif %}">Daily</a>
+                            <a href="/reflection?period=weekly" class="btn btn-sm btn-outline-primary {% if period == 'weekly' %}active{% endif %}">Weekly</a>
+                            <a href="/reflection?period=monthly" class="btn btn-sm btn-outline-primary {% if period == 'monthly' %}active{% endif %}">Monthly</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="/reflection">
+                            <input type="hidden" name="period" value="{{ period }}">
+                            <button type="submit" class="btn btn-primary mb-3">Generate New Reflection</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if reflection %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <span>{{ period|capitalize }} Reflection</span>
+                        <small class="text-muted ms-2">Generated on {{ reflection.timestamp }}</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5>Summary</h5>
+                                <p>{{ reflection.summary }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5>Trading Statistics</h5>
+                                <ul class="list-group">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Total Trades</span>
+                                        <span>{{ reflection.statistics.total_trades }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Win Rate</span>
+                                        <span>{{ (reflection.statistics.win_rate * 100)|round(1) }}%</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Total Profit</span>
+                                        <span class="{% if reflection.statistics.total_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            ${{ reflection.statistics.total_profit|round(2) }}
+                                        </span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Average Trade</span>
+                                        <span class="{% if reflection.statistics.avg_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            ${{ reflection.statistics.avg_profit|round(2) }}
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Market Conditions</h5>
+                                <p>{{ reflection.market_conditions }}</p>
+                                
+                                <h5 class="mt-3">Best Performing Strategy</h5>
+                                <p>{{ reflection.best_strategy }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5>Strengths</h5>
+                                <ul>
+                                    {% for strength in reflection.strengths %}
+                                    <li>{{ strength }}</li>
+                                    {% endfor %}
+                                </ul>
+                                
+                                <h5>Weaknesses</h5>
+                                <ul>
+                                    {% for weakness in reflection.weaknesses %}
+                                    <li>{{ weakness }}</li>
+                                    {% endfor %}
+                                </ul>
+                                
+                                <h5>Opportunities</h5>
+                                <ul>
+                                    {% for opportunity in reflection.opportunities %}
+                                    <li>{{ opportunity }}</li>
+                                    {% endfor %}
+                                </ul>
+                                
+                                <h5>Recommendations</h5>
+                                <ul>
+                                    {% for recommendation in reflection.recommendations %}
+                                    <li>{{ recommendation }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    <p>No reflection data available. Generate a new reflection or check back later.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="d-grid gap-2">
+                    <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

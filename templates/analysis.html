@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Analysis - Agentic AI Trader</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <style>
+        .card {
+            margin-bottom: 20px;
+        }
+        
+        .signal-buy {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .signal-sell {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .signal-neutral {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        
+        pre {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <header class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
+            <a href="/" class="text-decoration-none">
+                <h1 class="h2">Agentic AI Trader</h1>
+            </a>
+            <span class="fs-4">Market Analysis</span>
+        </header>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        Analyze Market
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="/analyze">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="symbol" class="form-label">Symbol</label>
+                                    <input type="text" class="form-control" id="symbol" name="symbol" value="{{ symbol }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="timeframe" class="form-label">Timeframe</label>
+                                    <select class="form-select" id="timeframe" name="timeframe">
+                                        <option value="M1" {% if timeframe == 'M1' %}selected{% endif %}>1 Minute</option>
+                                        <option value="M5" {% if timeframe == 'M5' %}selected{% endif %}>5 Minutes</option>
+                                        <option value="M15" {% if timeframe == 'M15' %}selected{% endif %}>15 Minutes</option>
+                                        <option value="M30" {% if timeframe == 'M30' %}selected{% endif %}>30 Minutes</option>
+                                        <option value="H1" {% if timeframe == 'H1' %}selected{% endif %}>1 Hour</option>
+                                        <option value="H4" {% if timeframe == 'H4' %}selected{% endif %}>4 Hours</option>
+                                        <option value="D1" {% if timeframe == 'D1' %}selected{% endif %}>1 Day</option>
+                                        <option value="W1" {% if timeframe == 'W1' %}selected{% endif %}>1 Week</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">Analyze</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if analysis %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Analysis Results for {{ symbol }} ({{ timeframe }})</span>
+                        <span class="badge {% if analysis.signal == 'buy' %}bg-success{% elif analysis.signal == 'sell' %}bg-danger{% else %}bg-warning{% endif %}">
+                            {% if analysis.signal == 'buy' %}BUY{% elif analysis.signal == 'sell' %}SELL{% else %}NEUTRAL{% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5>Summary</h5>
+                                <p>{{ analysis.summary }}</p>
+                                
+                                <h5>Signal</h5>
+                                <p class="{% if analysis.signal == 'buy' %}signal-buy{% elif analysis.signal == 'sell' %}signal-sell{% else %}signal-neutral{% endif %}">
+                                    {{ analysis.signal | upper }} 
+                                    {% if analysis.confidence %}
+                                    (Confidence: {{ (analysis.confidence * 100) | round(1) }}%)
+                                    {% endif %}
+                                </p>
+                                
+                                <h5>Reasoning</h5>
+                                <p>{{ analysis.reasoning }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Indicators</h5>
+                                {% if analysis.indicators %}
+                                <ul class="list-group">
+                                    {% for indicator, value in analysis.indicators.items() %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>{{ indicator }}</span>
+                                        <span>{{ value }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <p>No indicator data available.</p>
+                                {% endif %}
+                                
+                                <h5 class="mt-3">Price Data</h5>
+                                {% if analysis.price_data %}
+                                <ul class="list-group">
+                                    {% for key, value in analysis.price_data.items() %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>{{ key }}</span>
+                                        <span>{{ value }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <p>No price data available.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if analysis.technical_analysis %}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5>Detailed Technical Analysis</h5>
+                                <pre>{{ analysis.technical_analysis }}</pre>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if is_running and analysis.signal in ['buy', 'sell'] and analysis.confidence >= 0.6 %}
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <form method="post" action="/one-click-trade">
+                                    <input type="hidden" name="symbol" value="{{ symbol }}">
+                                    <input type="hidden" name="signal" value="{{ analysis.signal }}">
+                                    <input type="hidden" name="risk_level" value="medium">
+                                    <button type="submit" class="btn btn-primary">Execute Trade Based on Analysis</button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="d-grid gap-2">
+                    <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,1 +1,53 @@
-{"market_insights": [], "performance_metrics": {}, "system_events": []}
+{
+  "market_insights": [
+    {
+      "symbol": "BTCUSD",
+      "timeframe": "M5",
+      "timestamp": "2025-04-06T09:30:25.912726",
+      "analysis": {
+        "symbol": "BTCUSD",
+        "timeframe": "M5",
+        "signal": "neutral",
+        "confidence": 0.5,
+        "reasoning": "Combined analysis from multiple strategies: rsi_macd: neutral (conf: 0.50); trend_following: buy (conf: 0.80); support_resistance: neutral (conf: 0.50); breakout: sell (conf: 0.60); ai_analysis: neutral (conf: 0.50)",
+        "summary": "No clear signal from 5 strategies, recommend waiting for stronger indication.",
+        "timestamp": "2025-04-06T09:30:25.912689",
+        "strategy_results": [
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "RSI is neutral at 56.38 MACD (19.5252) is below signal line (37.6700), indicating bearish momentum",
+            "strategy": "rsi_macd"
+          },
+          {
+            "signal": "buy",
+            "confidence": 0.8,
+            "reasoning": "Price (60736.76) is above MA20 (60279.32), indicating short-term bullish trend MA20 (60279.32) is above MA50 (60217.90), indicating medium-term bullish trend MA50 (60217.90) is above MA200 (60096.08), indicating long-term bullish trend",
+            "strategy": "trend_following"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Price (60736.76) is in the middle range between support (58634.44) and resistance (61569.59)",
+            "strategy": "support_resistance"
+          },
+          {
+            "signal": "sell",
+            "confidence": 0.6,
+            "reasoning": "Price (60736.76) is testing upper Bollinger Band (61086.24), potential reversal point",
+            "strategy": "breakout"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "AI analysis failed: Object of type ndarray is not JSON serializable",
+            "summary": "Unable to perform AI analysis due to an error.",
+            "strategy": "ai_analysis"
+          }
+        ]
+      }
+    }
+  ],
+  "performance_metrics": {},
+  "system_events": []
+}

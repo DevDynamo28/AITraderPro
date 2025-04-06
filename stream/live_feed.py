@@ -265,20 +265,25 @@ class LiveFeed:
         """
         self.logger.info(f"Starting WebSocket server on port {self.websocket_port}")
         
-        # Create event loop in the new thread
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        # Set up the WebSocket server
-        start_server = websockets.serve(
-            self._websocket_handler,
-            '0.0.0.0',
-            self.websocket_port
-        )
-        
-        # Run the server until the thread is stopped
-        loop.run_until_complete(start_server)
-        loop.run_forever()
+        try:
+            # Create event loop in the new thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            # Set up the WebSocket server
+            start_server = websockets.serve(
+                self._websocket_handler,
+                '0.0.0.0',
+                self.websocket_port
+            )
+            
+            # Run the server until the thread is stopped
+            loop.run_until_complete(start_server)
+            loop.run_forever()
+        except Exception as e:
+            self.logger.error(f"Error starting WebSocket server: {str(e)}")
+            # Safely continue even if WebSocket fails
+            pass
     
     async def _websocket_handler(self, websocket, path):
         """

@@ -241,6 +241,11 @@ class MT5Connector:
         self.config = config
         self.initialized = False
         self.logger = logging.getLogger('MT5Connector')
+        
+        # Check environment variables for MT5 credentials
+        self.config['login'] = os.environ.get('MT5_LOGIN') or self.config.get('login')
+        self.config['password'] = os.environ.get('MT5_PASSWORD') or self.config.get('password')
+        self.config['server'] = os.environ.get('MT5_SERVER') or self.config.get('server')
     
     def initialize(self):
         """

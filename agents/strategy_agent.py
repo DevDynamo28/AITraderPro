@@ -405,7 +405,8 @@ class StrategyAgent:
             indicator_values = {}
             for name, values in indicators.items():
                 if len(values) > 0:
-                    indicator_values[name] = values[-5:]  # Last 5 values
+                    # Convert numpy arrays to Python lists for JSON serialization
+                    indicator_values[name] = [float(val) for val in values[-5:]]  # Last 5 values
             
             indicator_str = json.dumps(indicator_values, indent=2)
             

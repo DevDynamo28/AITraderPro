@@ -1,38 +1,33 @@
-mt5:
-  server: MetaQuotes-Demo
-  login: null
-  password: null
-  timeout: 60000
-  simulation: true
-
-trading:
-  symbol: BTCUSD
-  timeframe: M5
-  risk_per_trade: 0.01
-  enable_auto_trading: false
-  max_open_positions: 3
-
 indicators:
+  macd:
+    fast: 12
+    signal: 9
+    slow: 26
   rsi:
     length: 14
     overbought: 70
     oversold: 30
-  macd:
-    fast: 12
-    slow: 26
-    signal: 9
-
+mt5:
+  login: '239185318'
+  password: Dev@2025
+  server: Exness-MT5Trial6
+  simulation: true
+  timeout: 60000
 openai:
-  model: gpt-4o  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+  model: gpt-4o
   temperature: 0.2
-
 scheduler:
-  analysis_interval: 5  # minutes
-  reflection_interval: 60  # minutes
-
+  analysis_interval: 5
+  reflection_interval: 60
 stream:
-  update_interval: 1.0
-  symbols: 
-    - BTCUSD
   enable_websocket: true
+  symbols:
+  - BTCUSD
+  update_interval: 1.0
   websocket_port: 8765
+trading:
+  enable_auto_trading: false
+  max_open_positions: 3
+  risk_per_trade: 0.01
+  symbol: BTCUSD
+  timeframe: M5

@@ -46,6 +46,382 @@
           }
         ]
       }
+    },
+    {
+      "symbol": "BTCUSD",
+      "timeframe": "M5",
+      "timestamp": "2025-04-06T09:41:26.633043",
+      "analysis": {
+        "symbol": "BTCUSD",
+        "timeframe": "M5",
+        "signal": "sell",
+        "confidence": 0.75,
+        "reasoning": "The recent price action shows a decline from a local high, with several red candles and lower highs, indicating bearish sentiment. The MACD line remains below the signal line, further emphasizing bearish momentum as reflected in the MACD histogram's recent negative reading. Additionally, the RSI has dropped below 50, suggesting a weakening of buying power. The 20-period moving average is below the 50 and 200-period moving averages, supporting the bearish outlook. Overall, these combined indicators suggest a probable continuation of downward movement.",
+        "summary": "Technical indicators and recent price action suggest a bearish trend continuation, recommending a sell signal.",
+        "timestamp": "2025-04-06T09:41:26.633020",
+        "strategy_results": [
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "RSI is neutral at 44.66 MACD (-9.6423) is above signal line (-51.3837), indicating bullish momentum",
+            "strategy": "rsi_macd"
+          },
+          {
+            "signal": "buy",
+            "confidence": 0.8,
+            "reasoning": "Price (60113.21) is above MA20 (59849.55), indicating short-term bullish trend MA20 (59849.55) is below MA50 (59976.36), indicating medium-term bearish trend MA50 (59976.36) is above MA200 (59938.02), indicating long-term bullish trend",
+            "strategy": "trend_following"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Price (60113.21) is in the middle range between support (58209.78) and resistance (61212.22)",
+            "strategy": "support_resistance"
+          },
+          {
+            "signal": "sell",
+            "confidence": 0.6,
+            "reasoning": "Price (60113.21) is testing upper Bollinger Band (60709.11), potential reversal point",
+            "strategy": "breakout"
+          },
+          {
+            "signal": "sell",
+            "confidence": 0.75,
+            "reasoning": "The recent price action shows a decline from a local high, with several red candles and lower highs, indicating bearish sentiment. The MACD line remains below the signal line, further emphasizing bearish momentum as reflected in the MACD histogram's recent negative reading. Additionally, the RSI has dropped below 50, suggesting a weakening of buying power. The 20-period moving average is below the 50 and 200-period moving averages, supporting the bearish outlook. Overall, these combined indicators suggest a probable continuation of downward movement.",
+            "summary": "Technical indicators and recent price action suggest a bearish trend continuation, recommending a sell signal.",
+            "strategy": "ai_analysis"
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "BTCUSD",
+      "timeframe": "M5",
+      "timestamp": "2025-04-06T09:46:29.708733",
+      "analysis": {
+        "symbol": "BTCUSD",
+        "timeframe": "M5",
+        "signal": "neutral",
+        "confidence": 0.5,
+        "reasoning": "Combined analysis from multiple strategies: rsi_macd: buy (conf: 0.60); trend_following: buy (conf: 0.80); support_resistance: neutral (conf: 0.50); breakout: sell (conf: 0.60); ai_analysis: neutral (conf: 0.60)",
+        "summary": "No clear signal from 5 strategies, recommend waiting for stronger indication.",
+        "timestamp": "2025-04-06T09:46:29.708710",
+        "strategy_results": [
+          {
+            "signal": "buy",
+            "confidence": 0.6,
+            "reasoning": "RSI is neutral at 49.58 MACD (103.1876) is above signal line (46.1002), indicating bullish momentum",
+            "strategy": "rsi_macd"
+          },
+          {
+            "signal": "buy",
+            "confidence": 0.8,
+            "reasoning": "Price (60126.20) is above MA20 (60096.07), indicating short-term bullish trend MA20 (60096.07) is above MA50 (60007.79), indicating medium-term bullish trend MA50 (60007.79) is above MA200 (59962.01), indicating long-term bullish trend",
+            "strategy": "trend_following"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Could not identify clear support and resistance levels",
+            "strategy": "support_resistance"
+          },
+          {
+            "signal": "sell",
+            "confidence": 0.6,
+            "reasoning": "Price (60126.20) is testing upper Bollinger Band (61137.97), potential reversal point",
+            "strategy": "breakout"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.6,
+            "reasoning": "The current data shows mixed signals. The short-term moving averages (MA20, MA50) are continuing to hover close to each other, indicating no clear trend direction and maintaining a neutral stance. RSI is near 50, suggesting no overbought or oversold conditions. The MACD line is above the signal line, typically a bullish sign, but the MACD histogram shows a large contraction indicating decreasing momentum. Additionally, current price levels are near the middle of the Bollinger Bands, reflecting a neutral market condition. These factors combined suggest no compelling direction for entering a trade.",
+            "summary": "Market indicators are mixed and show no clear trading direction, suggesting a neutral strategy.",
+            "strategy": "ai_analysis"
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "BTCUSD",
+      "timeframe": "M5",
+      "timestamp": "2025-04-06T09:51:32.756423",
+      "analysis": {
+        "symbol": "BTCUSD",
+        "timeframe": "M5",
+        "signal": "sell",
+        "confidence": 0.75,
+        "reasoning": "The recent price data indicates a downward trend with lower highs and lower lows visible in the last few data points. The moving averages show the price is trading below the 20-period, 50-period, and almost touching the 200-period moving averages, suggesting a bearish outlook. The MACD is negative with a decreasing MACD line and a positive histogram, indicating a potential trend weakening rather than a reversal. Furthermore, the RSI level is currently at 45, which is below the neutral mark of 50, suggesting potential further downside as it's more in the bearish territory. Overall, these factors suggest a potential selling opportunity.",
+        "summary": "Market indicators suggest a bearish trend, indicating a 'sell' signal with moderate confidence.",
+        "timestamp": "2025-04-06T09:51:32.756401",
+        "strategy_results": [
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "RSI is neutral at 52.53 MACD (82.8667) is above signal line (-0.9059), indicating bullish momentum",
+            "strategy": "rsi_macd"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Price (60368.96) is above MA20 (59889.05), indicating short-term bullish trend MA20 (59889.05) is below MA50 (59963.46), indicating medium-term bearish trend MA50 (59963.46) is below MA200 (59986.67), indicating long-term bearish trend",
+            "strategy": "trend_following"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Could not identify clear support and resistance levels",
+            "strategy": "support_resistance"
+          },
+          {
+            "signal": "sell",
+            "confidence": 0.6,
+            "reasoning": "Price (60368.96) is testing upper Bollinger Band (61048.99), potential reversal point",
+            "strategy": "breakout"
+          },
+          {
+            "signal": "sell",
+            "confidence": 0.75,
+            "reasoning": "The recent price data indicates a downward trend with lower highs and lower lows visible in the last few data points. The moving averages show the price is trading below the 20-period, 50-period, and almost touching the 200-period moving averages, suggesting a bearish outlook. The MACD is negative with a decreasing MACD line and a positive histogram, indicating a potential trend weakening rather than a reversal. Furthermore, the RSI level is currently at 45, which is below the neutral mark of 50, suggesting potential further downside as it's more in the bearish territory. Overall, these factors suggest a potential selling opportunity.",
+            "summary": "Market indicators suggest a bearish trend, indicating a 'sell' signal with moderate confidence.",
+            "strategy": "ai_analysis"
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "BTCUSD",
+      "timeframe": "M5",
+      "timestamp": "2025-04-06T09:56:35.607792",
+      "analysis": {
+        "symbol": "BTCUSD",
+        "timeframe": "M5",
+        "signal": "neutral",
+        "confidence": 0.5,
+        "reasoning": "Combined analysis from multiple strategies: rsi_macd: neutral (conf: 0.50); trend_following: neutral (conf: 0.50); support_resistance: neutral (conf: 0.50); breakout: sell (conf: 0.60); ai_analysis: neutral (conf: 0.60)",
+        "summary": "No clear signal from 5 strategies, recommend waiting for stronger indication.",
+        "timestamp": "2025-04-06T09:56:35.607771",
+        "strategy_results": [
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "RSI is neutral at 47.44 MACD (-15.8814) is below signal line (29.6788), indicating bearish momentum",
+            "strategy": "rsi_macd"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Price (59821.38) is below MA20 (60257.97), indicating short-term bearish trend MA20 (60257.97) is above MA50 (60150.91), indicating medium-term bullish trend MA50 (60150.91) is above MA200 (60095.34), indicating long-term bullish trend",
+            "strategy": "trend_following"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Could not identify clear support and resistance levels",
+            "strategy": "support_resistance"
+          },
+          {
+            "signal": "sell",
+            "confidence": 0.6,
+            "reasoning": "Price (59821.38) is testing upper Bollinger Band (61015.07), potential reversal point",
+            "strategy": "breakout"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.6,
+            "reasoning": "The recent market data shows fluctuating prices with no clear direction. The 20-period moving average is slightly above the 50-period, which is a bullish signal, but both are only marginally above the 200-period moving average, suggesting general market stability. The RSI values hover around 50, indicating a lack of momentum in either direction. Additionally, the MACD is below its signal line with negative histogram values, suggesting weak bearish momentum. The Bollinger Bands show prices are oscillating within the middle range, with no new extremes being tested. The ATR indicates moderate volatility but not significantly high. Overall, the indicators provide mixed signals without a strong bias towards buying or selling, leading to a neutral recommendation.",
+            "summary": "The market data and indicators show no strong trend, suggesting a neutral trading stance.",
+            "strategy": "ai_analysis"
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "BTCUSD",
+      "timeframe": "M5",
+      "timestamp": "2025-04-06T10:21:58.639703",
+      "analysis": {
+        "symbol": "BTCUSD",
+        "timeframe": "M5",
+        "signal": "neutral",
+        "confidence": 0.7,
+        "reasoning": "The market data presents a mixed signal scenario. The recent price action shows volatility with no clear trend as the price fluctuates considerably. The RSI levels are around neutral, indicating neither overbought nor oversold conditions. The MACD has a positive histogram but shows mixed momentum signals with a decreasing MACD line. The moving averages (ma20, ma50, ma200) are closely aligned, suggesting consolidation. Bollinger Bands are somewhat stable with the price moving within bands, indicating low breakout probability. These factors suggest a lack of strong directional bias, leading to a neutral trading stance.",
+        "summary": "Current market conditions show no clear bullish or bearish trend, recommending a neutral trading stance.",
+        "timestamp": "2025-04-06T10:21:58.639680",
+        "strategy_results": [
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "RSI is neutral at 46.90 MACD (35.4845) is above signal line (-2.3061), indicating bullish momentum",
+            "strategy": "rsi_macd"
+          },
+          {
+            "signal": "buy",
+            "confidence": 0.8,
+            "reasoning": "Price (60501.32) is above MA20 (60158.50), indicating short-term bullish trend MA20 (60158.50) is above MA50 (60088.37), indicating medium-term bullish trend MA50 (60088.37) is above MA200 (59975.23), indicating long-term bullish trend",
+            "strategy": "trend_following"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Could not identify clear support and resistance levels",
+            "strategy": "support_resistance"
+          },
+          {
+            "signal": "sell",
+            "confidence": 0.6,
+            "reasoning": "Price (60501.32) is testing upper Bollinger Band (61098.36), potential reversal point",
+            "strategy": "breakout"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.7,
+            "reasoning": "The market data presents a mixed signal scenario. The recent price action shows volatility with no clear trend as the price fluctuates considerably. The RSI levels are around neutral, indicating neither overbought nor oversold conditions. The MACD has a positive histogram but shows mixed momentum signals with a decreasing MACD line. The moving averages (ma20, ma50, ma200) are closely aligned, suggesting consolidation. Bollinger Bands are somewhat stable with the price moving within bands, indicating low breakout probability. These factors suggest a lack of strong directional bias, leading to a neutral trading stance.",
+            "summary": "Current market conditions show no clear bullish or bearish trend, recommending a neutral trading stance.",
+            "strategy": "ai_analysis"
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "BTCUSD",
+      "timeframe": "M5",
+      "timestamp": "2025-04-06T10:21:58.830931",
+      "analysis": {
+        "symbol": "BTCUSD",
+        "timeframe": "M5",
+        "signal": "sell",
+        "confidence": 0.8,
+        "reasoning": "The current technical indicators suggest a bearish sentiment. The recent price movement shows lower highs and lower lows which indicates a downtrend. The RSI is below 50, indicating a bearish sentiment and potential for continued weakness. The MACD is in negative territory with a widening gap between the MACD line and the signal line while the MACD histogram shows increasing negative values suggesting increasing bearish momentum. The price is also below the 20, 50, and 200 MA, supporting a bearish trend. With momentum indicators and moving averages reinforcing each other, the probability of the continuation of the downward trend is high.",
+        "summary": "The market signals suggest a strong bearish trend, recommending a sell signal.",
+        "timestamp": "2025-04-06T10:21:58.830859",
+        "strategy_results": [
+          {
+            "signal": "sell",
+            "confidence": 0.6,
+            "reasoning": "RSI is neutral at 47.27 MACD (-153.2026) is below signal line (-85.3803), indicating bearish momentum",
+            "strategy": "rsi_macd"
+          },
+          {
+            "signal": "sell",
+            "confidence": 0.8,
+            "reasoning": "Price (59508.58) is below MA20 (59936.22), indicating short-term bearish trend MA20 (59936.22) is below MA50 (60013.84), indicating medium-term bearish trend MA50 (60013.84) is below MA200 (60029.63), indicating long-term bearish trend",
+            "strategy": "trend_following"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Could not identify clear support and resistance levels",
+            "strategy": "support_resistance"
+          },
+          {
+            "signal": "buy",
+            "confidence": 0.6,
+            "reasoning": "Price (59508.58) is testing lower Bollinger Band (58998.12), potential reversal point",
+            "strategy": "breakout"
+          },
+          {
+            "signal": "sell",
+            "confidence": 0.8,
+            "reasoning": "The current technical indicators suggest a bearish sentiment. The recent price movement shows lower highs and lower lows which indicates a downtrend. The RSI is below 50, indicating a bearish sentiment and potential for continued weakness. The MACD is in negative territory with a widening gap between the MACD line and the signal line while the MACD histogram shows increasing negative values suggesting increasing bearish momentum. The price is also below the 20, 50, and 200 MA, supporting a bearish trend. With momentum indicators and moving averages reinforcing each other, the probability of the continuation of the downward trend is high.",
+            "summary": "The market signals suggest a strong bearish trend, recommending a sell signal.",
+            "strategy": "ai_analysis"
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "BTCUSD",
+      "timeframe": "M5",
+      "timestamp": "2025-04-06T10:27:01.690823",
+      "analysis": {
+        "symbol": "BTCUSD",
+        "timeframe": "M5",
+        "signal": "neutral",
+        "confidence": 0.5,
+        "reasoning": "Combined analysis from multiple strategies: rsi_macd: neutral (conf: 0.50); trend_following: neutral (conf: 0.50); support_resistance: neutral (conf: 0.50); breakout: buy (conf: 0.60); ai_analysis: neutral (conf: 0.50)",
+        "summary": "No clear signal from 5 strategies, recommend waiting for stronger indication.",
+        "timestamp": "2025-04-06T10:27:01.690804",
+        "strategy_results": [
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "RSI is neutral at 45.15 MACD (-19.1615) is below signal line (19.9964), indicating bearish momentum",
+            "strategy": "rsi_macd"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Price (59673.48) is below MA20 (60134.61), indicating short-term bearish trend MA20 (60134.61) is above MA50 (60060.64), indicating medium-term bullish trend MA50 (60060.64) is above MA200 (59998.05), indicating long-term bullish trend",
+            "strategy": "trend_following"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Could not identify clear support and resistance levels",
+            "strategy": "support_resistance"
+          },
+          {
+            "signal": "buy",
+            "confidence": 0.6,
+            "reasoning": "Price (59673.48) is testing lower Bollinger Band (59296.73), potential reversal point",
+            "strategy": "breakout"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "The recent price data and technical indicators present mixed signals. The current price is fluctuating around the 20-period moving average, suggesting indecision. The RSI values oscillate around the midpoint (50 level), indicating a lack of strong momentum in either direction. The MACD line is below the signal line with negative histogram figures, suggesting a bearish bias, but it's coupled with a short-term recovery above the 200-period MA, indicating potential consolidation. Bollinger Bands show prices near the middle band without significant deviation towards the upper or lower bands, further suggesting no strong trend. Finally, ATR indicates increasing volatility, but without directional clarity.",
+            "summary": "Market indicators are mixed with no clear trend, suggesting a neutral trading stance.",
+            "strategy": "ai_analysis"
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "BTCUSD",
+      "timeframe": "M5",
+      "timestamp": "2025-04-06T10:27:02.417092",
+      "analysis": {
+        "symbol": "BTCUSD",
+        "timeframe": "M5",
+        "signal": "neutral",
+        "confidence": 0.5,
+        "reasoning": "Combined analysis from multiple strategies: rsi_macd: neutral (conf: 0.50); trend_following: neutral (conf: 0.50); support_resistance: neutral (conf: 0.50); breakout: buy (conf: 0.60); ai_analysis: neutral (conf: 0.60)",
+        "summary": "No clear signal from 5 strategies, recommend waiting for stronger indication.",
+        "timestamp": "2025-04-06T10:27:02.417073",
+        "strategy_results": [
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "RSI is neutral at 45.15 MACD (-19.1615) is below signal line (19.9964), indicating bearish momentum",
+            "strategy": "rsi_macd"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Price (59673.48) is below MA20 (60134.61), indicating short-term bearish trend MA20 (60134.61) is above MA50 (60060.64), indicating medium-term bullish trend MA50 (60060.64) is above MA200 (59998.05), indicating long-term bullish trend",
+            "strategy": "trend_following"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.5,
+            "reasoning": "Could not identify clear support and resistance levels",
+            "strategy": "support_resistance"
+          },
+          {
+            "signal": "buy",
+            "confidence": 0.6,
+            "reasoning": "Price (59673.48) is testing lower Bollinger Band (59296.73), potential reversal point",
+            "strategy": "breakout"
+          },
+          {
+            "signal": "neutral",
+            "confidence": 0.6,
+            "reasoning": "The recent price data shows some declines in the closing prices, and the short-term moving averages (MA20 and MA50) are above the MA200, indicating some bearish momentum, but not strong enough to warrant a definitive sell signal. The RSI is in the neutral zone around 50, suggesting no strong overbought or oversold conditions. The MACD is below its signal line with negative histogram values, indicating bearish momentum, but not strongly pronounced. The ATR indicates high volatility, yet there is no decisive price breakout towards the upper or lower Bollinger Bands, keeping the trend uncertain. Hence, a neutral stance is recommended given mixed signals and elevated volatility.",
+            "summary": "Current market conditions show mixed signals with high volatility, leading to a neutral trading recommendation.",
+            "strategy": "ai_analysis"
+          }
+        ]
+      }
     }
   ],
   "performance_metrics": {},

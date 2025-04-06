@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "period": "daily",
+    "timestamp": "2025-04-06T10:16:27.296491",
+    "summary": "No trades were executed during this period.",
+    "statistics": {
+      "total_trades": 0,
+      "win_rate": 0.0,
+      "total_profit": 0.0,
+      "avg_profit": 0.0
+    },
+    "market_conditions": "Insufficient data to analyze market conditions.",
+    "best_strategy": "No strategies were employed during this period.",
+    "strengths": [
+      "Not enough data to identify strengths."
+    ],
+    "weaknesses": [
+      "Lack of trading activity."
+    ],
+    "opportunities": [
+      "Consider setting up more automated trading rules."
+    ],
+    "recommendations": [
+      "Set up at least one active trading strategy.",
+      "Configure more aggressive trading parameters.",
+      "Consider trading during more active market hours."
+    ]
+  }
+]

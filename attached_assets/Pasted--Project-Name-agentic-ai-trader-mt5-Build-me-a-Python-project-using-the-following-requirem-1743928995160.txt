@@ -1,0 +1,90 @@
+📦 Project Name: agentic-ai-trader-mt5
+
+👨‍💻 Build me a Python project using the following requirements:
+
+💡 Goal:
+Create an Agentic AI Trader Bot using GPT-4 and LangChain that connects to the MetaTrader5 (MT5) trading platform. The bot should analyze BTCUSD (5-minute timeframe), apply RSI/MACD strategy, manage risk, and allow one-click trade execution via MT5. It should also stream live BTCUSD price and learn from past trades to improve performance.
+
+📁 Folder Structure:
+agentic-ai-trader-mt5/
+│
+├── agents/
+│   ├── planner_agent.py
+│   ├── strategy_agent.py
+│   ├── risk_agent.py
+│   ├── executor_agent.py
+│   ├── memory_agent.py
+│   ├── reflection_agent.py
+│
+├── utils/
+│   ├── indicators.py
+│   ├── market_data.py
+│   └── mt5_connector.py
+│
+├── data/
+│   └── logs/
+│
+├── stream/
+│   └── live_feed.py
+│
+├── .env
+├── main.py
+├── config.yaml
+├── requirements.txt
+└── README.md
+
+🔧 Features:
+1. Connect to MetaTrader5 via the `MetaTrader5` Python library.
+2. Use GPT-4 to break down trading goals, choose indicators, and suggest actions.
+3. Strategy agent fetches BTCUSD OHLCV data from MT5.
+4. Risk agent sets SL/TP and lot size based on account balance.
+5. Executor agent places trades via MT5 with one-click logic.
+6. Memory agent logs trade data to a vector store or DB.
+7. Reflection agent reviews outcomes and adapts strategy.
+8. Live feed module streams BTCUSD prices in real-time (socket or polling).
+
+🧠 Learning Behavior:
+- Store all trade results
+- GPT-4 or custom logic evaluates patterns over time
+- Adjusts indicator weights or trade size based on past win rate
+
+📈 Strategy Examples:
+- RSI < 30 → Buy
+- MACD crossover → Confirm trend
+- GPT-4 reflects on results: “MACD worked better last week, increase its weight.”
+
+🛠️ Tools & Libraries:
+- openai
+- langchain
+- python-dotenv
+- MetaTrader5
+- pandas
+- pandas-ta
+- requests
+- pinecone-client or chromadb
+- fastapi or streamlit
+- schedule
+- websocket-client (or polling for live prices)
+
+🔒 .env Template:
+OPENAI_API_KEY=
+
+🖱️ One-Click Trade Logic:
+- A Streamlit or FastAPI interface with a "BUY" / "SELL" button
+- On click → GPT analyzes → executor_agent.py submits MT5 order
+
+🔁 Future Expansion (placeholders included):
+- sentiment_agent.py (news/sentiment)
+- scaling_agent.py (auto lot size growth)
+- portfolio_agent.py (multi-symbol strategy)
+- notifier.py (alerts via Telegram/Email)
+
+📘 README.md must include:
+- How to connect MT5
+- Running bot manually and via scheduler
+- Notes on using Streamlit for UI and live feed
+- How the bot learns from past trades
+
+⚠️ Notes:
+- Use GPT-4 only for planning, not raw trade execution
+- Validate MT5 connectivity and trading permissions

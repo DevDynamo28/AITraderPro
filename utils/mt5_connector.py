@@ -243,9 +243,16 @@ class MT5Connector:
         self.logger = logging.getLogger('MT5Connector')
         
         # Check environment variables for MT5 credentials
-        self.config['login'] = os.environ.get('MT5_LOGIN') or self.config.get('login')
+        mt5_login = os.environ.get('MT5_LOGIN') or self.config.get('login')
+        # Convert login to int if it's a string containing only digits
+        if isinstance(mt5_login, str) and mt5_login.isdigit():
+            mt5_login = int(mt5_login)
+        self.config['login'] = mt5_login
         self.config['password'] = os.environ.get('MT5_PASSWORD') or self.config.get('password')
         self.config['server'] = os.environ.get('MT5_SERVER') or self.config.get('server')
+        
+        # Check if simulation mode is explicitly set
+        self.simulation_mode = self.config.get('simulation', False) or not MT5_AVAILABLE
     
     def initialize(self):
         """
@@ -257,7 +264,13 @@ class MT5Connector:
         if self.initialized:
             return True
         
-        # Check if we're in simulation mode (MT5 not available)
+        # Check if we're in simulation mode (by config or MT5 not available)
+        if self.simulation_mode:
+            self.logger.info("Running in simulation mode (as configured in settings)")
+            self.initialized = True
+            return True
+            
+        # Check if MT5 is available
         if not MT5_AVAILABLE:
             self.logger.warning("Running in simulation mode - MetaTrader5 package not available")
             self.initialized = True
@@ -271,7 +284,7 @@ class MT5Connector:
                 return False
             
             # Attempt login if credentials are provided
-            if 'login' in self.config and 'password' in self.config:
+            if self.config.get('login') and self.config.get('password'):
                 login_result = mt5.login(
                     login=self.config.get('login'),
                     password=self.config.get('password'),
@@ -282,6 +295,17 @@ class MT5Connector:
                     error = mt5.last_error()
                     self.logger.error(f"MT5 login failed with error code {error[0]}: {error[1]}")
                     mt5.shutdown()
+                    
+                    # Log more details about the login attempt (without showing the password)
+                    self.logger.info(f"Login details: login={type(self.config.get('login'))}, server={self.config.get('server', '')}")
+                    
+                    # Continue in simulation mode after failed login if enabled
+                    if self.config.get('simulation_fallback', True):
+                        self.logger.info("Falling back to simulation mode due to login failure")
+                        self.simulation_mode = True
+                        self.initialized = True
+                        return True
+                    
                     return False
             
             self.initialized = True
@@ -289,6 +313,14 @@ class MT5Connector:
             return True
         except Exception as e:
             self.logger.error(f"Error initializing MT5: {str(e)}")
+            
+            # Fall back to simulation mode on exception if enabled
+            if self.config.get('simulation_fallback', True):
+                self.logger.info("Falling back to simulation mode due to error")
+                self.simulation_mode = True
+                self.initialized = True
+                return True
+                
             return False
     
     def shutdown(self):
@@ -631,7 +663,7 @@ class MT5Connector:
             return self.initialize()
         
         # In simulation mode, we're always initialized
-        if not MT5_AVAILABLE:
+        if self.simulation_mode or not MT5_AVAILABLE:
             return True
             
         # Check if MT5 is still running
@@ -640,6 +672,13 @@ class MT5Connector:
                 return self.initialize()
         except Exception as e:
             self.logger.error(f"Error checking MT5 terminal info: {str(e)}")
+            
+            # Fall back to simulation mode on exception if enabled
+            if self.config.get('simulation_fallback', True):
+                self.logger.info("Falling back to simulation mode due to terminal info error")
+                self.simulation_mode = True
+                return True
+            
             return self.initialize()
         
         return True

@@ -39,6 +39,11 @@ class LiveFeed:
         self.enable_websocket = config.get('enable_websocket', True)
         self.websocket_port = config.get('websocket_port', 8765)
         
+        # Check simulation mode
+        self.simulation_mode = mt5_connector.simulation_mode if hasattr(mt5_connector, 'simulation_mode') else False
+        if self.simulation_mode:
+            self.logger.info("LiveFeed operating in simulation mode")
+        
         # State variables
         self.running = False
         self.last_prices = {}
@@ -47,6 +52,14 @@ class LiveFeed:
         
         # Callback handlers
         self.price_callbacks = []  # Functions to call when prices update
+        
+        # Simulation price variables
+        self.last_sim_update = time.time()
+        self.sim_price_base = {
+            'BTCUSD': 60000.0,
+            'ETHUSD': 4000.0,
+            'XRPUSD': 1.0,
+        }
         
         # Thread control
         self.poll_thread = None
@@ -64,10 +77,13 @@ class LiveFeed:
             return True
         
         try:
-            # Start MT5 connection if not already initialized
-            if not self.mt5.ensure_initialized():
-                self.logger.error("Failed to initialize MT5 connection")
-                return False
+            # Start MT5 connection if not in simulation mode and not already initialized
+            if not self.simulation_mode:
+                if not self.mt5.ensure_initialized():
+                    self.logger.warning("Failed to initialize MT5 connection, falling back to simulation mode")
+                    self.simulation_mode = True
+            else:
+                self.logger.info("Starting live feed in simulation mode")
             
             # Start price polling thread
             self.running = True
@@ -81,7 +97,8 @@ class LiveFeed:
                 self.websocket_thread.daemon = True
                 self.websocket_thread.start()
             
-            self.logger.info(f"Live feed started with symbols: {self.symbols}")
+            mode_str = "simulation mode" if self.simulation_mode else "live mode"
+            self.logger.info(f"Live feed started with symbols: {self.symbols} in {mode_str}")
             return True
         
         except Exception as e:
@@ -216,20 +233,26 @@ class LiveFeed:
         """
         for symbol in self.symbols:
             try:
-                # Get current symbol price
-                symbol_info = self.mt5.get_symbol_info(symbol)
-                
-                if symbol_info is None:
-                    continue
-                
-                # Format the price data
-                price_data = {
-                    'symbol': symbol,
-                    'bid': symbol_info['bid'],
-                    'ask': symbol_info['ask'],
-                    'spread': symbol_info['spread'],
-                    'time': datetime.now().isoformat()
-                }
+                # Check if we're using simulation mode
+                if self.simulation_mode:
+                    # Generate simulated price data
+                    price_data = self._generate_simulated_price(symbol)
+                else:
+                    # Get current symbol price from MT5
+                    symbol_info = self.mt5.get_symbol_info(symbol)
+                    
+                    if symbol_info is None:
+                        # If MT5 can't provide data, fallback to simulation for this symbol
+                        price_data = self._generate_simulated_price(symbol)
+                    else:
+                        # Format the price data from MT5
+                        price_data = {
+                            'symbol': symbol,
+                            'bid': symbol_info['bid'],
+                            'ask': symbol_info['ask'],
+                            'spread': symbol_info['spread'],
+                            'time': datetime.now().isoformat()
+                        }
                 
                 # Check if price has changed
                 if symbol in self.last_prices:
@@ -258,6 +281,53 @@ class LiveFeed:
             
             except Exception as e:
                 self.logger.error(f"Error updating price for {symbol}: {str(e)}")
+                
+    def _generate_simulated_price(self, symbol):
+        """
+        Generate simulated price data for a symbol.
+        
+        Args:
+            symbol (str): The symbol to generate price for.
+            
+        Returns:
+            dict: Simulated price data.
+        """
+        import random
+        
+        # Get base price for this symbol, default to 1000.0 if not defined
+        base_price = self.sim_price_base.get(symbol, 1000.0)
+        
+        # Calculate time since last update to scale volatility
+        now = time.time()
+        time_diff = now - self.last_sim_update
+        self.last_sim_update = now
+        
+        # Add some simulated volatility (more realistic price movement)
+        volatility = base_price * 0.001  # 0.1% base volatility
+        
+        # Generate a random price movement
+        # Use time difference to scale movement (larger movements over longer periods)
+        movement = random.uniform(-1, 1) * volatility * min(time_diff, 10)
+        
+        # Calculate new price
+        new_price = base_price + movement
+        
+        # Update the base price for next time
+        self.sim_price_base[symbol] = new_price
+        
+        # Calculate spread (0.01% to 0.05% of price)
+        spread_pct = random.uniform(0.0001, 0.0005)
+        spread_amount = new_price * spread_pct
+        
+        # Return formatted price data
+        return {
+            'symbol': symbol,
+            'bid': max(0.1, round(new_price - (spread_amount/2), 2)),
+            'ask': max(0.1, round(new_price + (spread_amount/2), 2)),
+            'spread': round(spread_amount * 100, 2),  # convert to points
+            'time': datetime.now().isoformat(),
+            'simulated': True  # Mark as simulated data
+        }
     
     def _start_websocket_server(self):
         """

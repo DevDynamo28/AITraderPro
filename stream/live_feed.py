@@ -95,8 +95,18 @@ class LiveFeed:
         try:
             # Start MT5 connection if not in simulation mode and not already initialized
             if not self.simulation_mode:
-                if not self.mt5.ensure_initialized():
-                    self.logger.warning("Failed to initialize MT5 connection, falling back to simulation mode")
+                # Check if the MT5 connector has the ensure_initialized method
+                if hasattr(self.mt5, 'ensure_initialized'):
+                    if not self.mt5.ensure_initialized():
+                        self.logger.warning("Failed to initialize MT5 connection, falling back to simulation mode")
+                        self.simulation_mode = True
+                # For MT5APIConnector which has initialize instead of ensure_initialized
+                elif hasattr(self.mt5, 'initialize'):
+                    if not self.mt5.initialize():
+                        self.logger.warning("Failed to initialize MT5 connection, falling back to simulation mode")
+                        self.simulation_mode = True
+                else:
+                    self.logger.warning("MT5 connector has no initialization method, falling back to simulation mode")
                     self.simulation_mode = True
             else:
                 self.logger.info("Starting live feed in simulation mode")

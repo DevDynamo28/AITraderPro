@@ -29,11 +29,24 @@ except Exception as e:
         }
     }
 
-# Test MT5 connector
-logger.info("Testing MT5Connector with simulation=True...")
-mt5_config_sim = config.get('mt5', {})
-mt5_config_sim['simulation'] = True  # Ensure simulation is enabled
-mt5_connector_sim = MT5Connector(mt5_config_sim)
+# Test MT5 connector with real credentials
+import os
+logger.info("Checking for MT5 environment variables...")
+mt5_login = os.environ.get('MT5_LOGIN')
+mt5_password = os.environ.get('MT5_PASSWORD')
+mt5_server = os.environ.get('MT5_SERVER')
+
+logger.info(f"MT5_LOGIN available: {mt5_login is not None}")
+logger.info(f"MT5_PASSWORD available: {mt5_password is not None}")
+logger.info(f"MT5_SERVER available: {mt5_server is not None}")
+
+# Load configuration from environment
+mt5_config = config.get('mt5', {})
+mt5_config['simulation'] = False  # Try to use real MT5 connection
+mt5_config['login'] = mt5_login
+mt5_config['password'] = mt5_password
+mt5_config['server'] = mt5_server
+mt5_connector_sim = MT5Connector(mt5_config)
 
 # Initialize and display status
 sim_init_result = mt5_connector_sim.initialize()

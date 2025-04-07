@@ -1575,6 +1575,7 @@ dependencies = [
     { name = "pandas" },
     { name = "psycopg2-binary" },
     { name = "pyyaml" },
+    { name = "requests" },
     { name = "schedule" },
     { name = "websockets" },
 ]
@@ -1591,6 +1592,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
     { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "requests", specifier = ">=2.32.3" },
     { name = "schedule", specifier = ">=1.2.2" },
     { name = "websockets", specifier = ">=15.0.1" },
 ]

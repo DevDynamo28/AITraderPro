@@ -251,8 +251,9 @@ class MT5Connector:
         self.config['password'] = os.environ.get('MT5_PASSWORD') or self.config.get('password')
         self.config['server'] = os.environ.get('MT5_SERVER') or self.config.get('server')
         
-        # Check if simulation mode is explicitly set
-        self.simulation_mode = self.config.get('simulation', False) or not MT5_AVAILABLE
+        # ALWAYS try to use real MT5 data first
+        # Only use simulation as a fallback
+        self.simulation_mode = False
     
     def initialize(self):
         """

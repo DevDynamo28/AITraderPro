@@ -1,59 +1,55 @@
-# Setting Up Real MT5 API Connection
+# Setting Up Direct MetaTrader 5 Connection
 
-This document explains how to connect your Agentic AI Trader with a real MetaTrader 5 instance to get live market data and execute trades.
+This document explains how to connect your Agentic AI Trader directly with your local MetaTrader 5 installation to get live market data and execute trades.
 
 ## Current Status
 
-The system has been designed to connect to a real MT5 instance through a REST API. When a real MT5 API server isn't available, the system falls back to simulation mode automatically, providing realistic price simulations for testing purposes.
+The system has been designed to connect directly to a locally installed MetaTrader 5 terminal. When MT5 is not available or cannot be initialized, the system falls back to simulation mode automatically, providing realistic price simulations for testing purposes.
 
-Currently, you'll see `"simulated": true` in the price data and account information, which indicates that the system is running in simulation mode.
+When you see `"simulated": true` in the price data and account information, it indicates that the system is running in simulation mode.
 
-## Setup Options for Real MT5 Connection
+## Setup for Direct MT5 Connection
 
-To connect to real MT5 data, you have several options:
+To connect to your locally installed MT5:
 
-### Option 1: Use a broker-provided MT5 API
+### Prerequisites
 
-Some brokers provide REST API access to their MT5 servers. If your broker offers this service:
+1. **Install MetaTrader 5**: Download and install the official MetaTrader 5 terminal from your broker's website or the [official MetaTrader website](https://www.metatrader5.com/en/download).
 
-1. Get your API endpoint URL from your broker
-2. Update your `.env` file with:
+2. **Create a Trading Account**: Set up a live or demo account with your broker.
+
+3. **Log in to MT5**: Open MetaTrader 5 and log in with your account credentials.
+
+### Configuration
+
+The system will automatically attempt to connect to your running MT5 terminal. If MT5 is not already running, the system will try to start it automatically.
+
+To ensure proper connection:
+
+1. Make sure your MetaTrader 5 terminal is installed in one of these common locations:
+   - `C:\Program Files\MetaTrader 5\terminal64.exe`
+   - `C:\Program Files (x86)\MetaTrader 5\terminal.exe`
+   - `C:\Program Files\MetaTrader 5\metatrader.exe`
+
+2. Optionally, you can provide your credentials in the `.env` file:
    ```
-   MT5_API_URL=https://your-brokers-mt5-api.com
    MT5_LOGIN=your_login_number
    MT5_PASSWORD=your_password
    MT5_SERVER=your_broker_server_name
    ```
 
-### Option 2: Set up a bridge server
+3. If your MT5 terminal is already logged in (recommended), the system will use the active session without requiring credentials.
 
-You can create a lightweight MT5 API server that acts as a bridge between your MT5 terminal and this application:
+### Auto-Start Feature
 
-1. Install MT5 on a Windows machine or server
-2. Install the "MT5 REST API Bridge" (available from several providers)
-3. Configure the bridge to expose MT5 data over HTTP/HTTPS
-4. Update your `.env` file to point to your bridge server
+The system includes an auto-start feature that will:
 
-### Option 3: Use MT5 Web API
+1. Check if MT5 is already running
+2. If not, attempt to launch the MetaTrader 5 terminal
+3. Wait for the terminal to initialize
+4. Connect to the running terminal
 
-MetaQuotes provides an official Web API for MT5. You can set up this connection by:
-
-1. Register for MT5 Web API access through MetaQuotes
-2. Generate API keys 
-3. Update your configuration to use the official Web API endpoints
-
-## Configuration
-
-Once you have your MT5 API endpoint, update your configuration:
-
-1. In the web interface: Go to Settings and enter your MT5 login, password, and server details
-2. Or update your environment variables:
-   ```
-   MT5_API_URL=https://your-mt5-api-server.com
-   MT5_LOGIN=your_login_number
-   MT5_PASSWORD=your_password
-   MT5_SERVER=your_broker_server_name
-   ```
+This feature is enabled by default but can be disabled in the settings.
 
 ## Verification
 
@@ -62,15 +58,25 @@ To verify your connection:
 1. Check the dashboard for "Simulation: false" status
 2. Look for real price data with "simulated: false" flag
 3. Check the API status at `/api/status` to confirm "mt5_connected": true
+4. Verify that your MT5 terminal is running
 
 ## Troubleshooting
 
 If you're having trouble connecting:
 
-1. Check your MT5 credentials (login, password, server)
-2. Verify the API URL is correct and accessible
-3. Ensure your MT5 server allows API connections
-4. Check if your broker restricts API access to specific IPs
-5. Review the logs for specific error messages
+1. Make sure MetaTrader 5 is installed on your system
+2. Check that your MT5 terminal is running and logged in
+3. If using credentials, verify they are correct (login, password, server)
+4. Ensure your MT5 terminal allows script/API connections (enabled in Tools > Options > Expert Advisors)
+5. Check if MT5 is installed in a non-standard location (if so, update the code or move it to a standard location)
+6. Review the application logs for specific error messages
 
-If you need assistance setting up your MT5 API connection, contact your broker's support team for their specific API documentation and requirements.
+## Advanced: Windows vs. Other Operating Systems
+
+The auto-start feature works best on Windows systems where MetaTrader 5 is natively supported. If you're running on:
+
+- **Windows**: The system should automatically find and start your MT5 terminal
+- **macOS**: You'll need to run MT5 through a Windows virtualization solution
+- **Linux**: You'll need to run MT5 through Wine or a Windows virtualization solution
+
+If running on a non-Windows system, ensure MT5 is already running before starting the trading system.

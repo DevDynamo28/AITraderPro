@@ -34,7 +34,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 # Import utility modules
-from utils.mt5_api_connector import MT5APIConnector  # Use API Connector to access real MT5 remotely
+from utils.mt5_connector import MT5Connector  # Use direct MT5 connection to locally installed MT5
 from utils.market_data import MarketDataUtil
 
 # Import stream module
@@ -68,7 +68,8 @@ def load_config():
                 'login': None,
                 'password': None,
                 'timeout': 60000,
-                'simulation': not MT5_AVAILABLE
+                'simulation': not MT5_AVAILABLE,
+                'auto_start': True  # Automatically start MT5 terminal
             },
             'trading': {
                 'symbol': 'BTCUSD',
@@ -94,17 +95,16 @@ config = load_config()
 os.makedirs('data', exist_ok=True)
 os.makedirs('data/logs', exist_ok=True)
 
-# Initialize MT5 API connector with real credentials
+# Initialize MT5 connector with local MT5 installation
 mt5_config = config.get('mt5', {})
-# Add API configuration if missing
-if 'api_url' not in mt5_config:
-    mt5_config['api_url'] = os.environ.get('MT5_API_URL', 'https://mt5api.example.com')
-if 'api_port' not in mt5_config:
-    mt5_config['api_port'] = os.environ.get('MT5_API_PORT', 443)
-if 'api_key' not in mt5_config:
-    mt5_config['api_key'] = os.environ.get('MT5_API_KEY', 'default_key')
+# Set credentials from environment variables if available
+mt5_config['login'] = os.environ.get('MT5_LOGIN', mt5_config.get('login'))
+mt5_config['password'] = os.environ.get('MT5_PASSWORD', mt5_config.get('password'))
+mt5_config['server'] = os.environ.get('MT5_SERVER', mt5_config.get('server'))
+# Enable auto-start of MT5 by default
+mt5_config['auto_start'] = mt5_config.get('auto_start', True)
 
-mt5_connector = MT5APIConnector(mt5_config)
+mt5_connector = MT5Connector(mt5_config)
 
 # Initialize market data utilities
 market_data_util = MarketDataUtil(mt5_connector)

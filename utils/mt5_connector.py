@@ -258,6 +258,7 @@ class MT5Connector:
     def initialize(self):
         """
         Initialize the connection to the MT5 platform.
+        Automatically starts MT5 terminal if it's not running.
         
         Returns:
             bool: True if initialization was successful, False otherwise.
@@ -278,11 +279,66 @@ class MT5Connector:
             return True
             
         try:
-            # Initialize MT5 connection
-            if not mt5.initialize():
+            # First try to initialize MT5 connection directly
+            # This will work if MT5 is already running
+            init_result = mt5.initialize()
+            
+            # If initialization failed, try to start MT5 terminal automatically
+            if not init_result and self.config.get('auto_start', True):
+                self.logger.info("MT5 not running, attempting to start MT5 terminal automatically...")
+                
+                # Try to find and start MT5 terminal
+                import subprocess
+                import sys
+                import platform
+                
+                # Different paths based on OS
+                if platform.system() == 'Windows':
+                    # Common installation paths for MT5 on Windows
+                    possible_paths = [
+                        "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+                        "C:\\Program Files (x86)\\MetaTrader 5\\terminal.exe",
+                        "C:\\Program Files\\MetaTrader 5\\metatrader.exe"
+                    ]
+                    
+                    for path in possible_paths:
+                        try:
+                            # Start MT5 terminal and don't wait for it to complete
+                            subprocess.Popen([path], shell=True)
+                            self.logger.info(f"Started MT5 terminal from {path}")
+                            
+                            # Wait for MT5 to start
+                            import time
+                            time.sleep(5)  # Wait 5 seconds for MT5 to initialize
+                            
+                            # Try to initialize again
+                            init_result = mt5.initialize()
+                            if init_result:
+                                break
+                        except Exception as e:
+                            self.logger.warning(f"Failed to start MT5 from {path}: {str(e)}")
+                else:
+                    self.logger.warning("Auto-start of MT5 terminal is only supported on Windows")
+            
+            # Check if initialization succeeded
+            if not init_result:
                 error = mt5.last_error()
                 self.logger.error(f"MT5 initialization failed with error code {error[0]}: {error[1]}")
+                
+                # Continue in simulation mode if initialization failed
+                if self.config.get('simulation_fallback', True):
+                    self.logger.info("Falling back to simulation mode due to initialization failure")
+                    self.simulation_mode = True
+                    self.initialized = True
+                    return True
                 return False
+            
+            # Check if we're already logged in, if so, no need to log in again
+            account_info = mt5.account_info()
+            if account_info is not None:
+                self.logger.info("MT5 account already logged in")
+                self.initialized = True
+                return True
             
             # Attempt login if credentials are provided
             if self.config.get('login') and self.config.get('password'):

@@ -109,8 +109,12 @@ reflection_agent = ReflectionAgent(config, memory_agent)
 # Initialize strategy agent
 strategy_agent = StrategyAgent(config, market_data_util)
 
-# Initialize live feed
-live_feed = LiveFeed(config, mt5_connector)
+# Initialize live feed with explicit symbols
+symbols_to_track = ['BTCUSD']  # Default symbol
+if 'trading' in config and 'symbol' in config['trading']:
+    symbols_to_track = [config['trading']['symbol']]
+live_feed_config = {'symbols': symbols_to_track}
+live_feed = LiveFeed(live_feed_config, mt5_connector)
 
 # Initialize MT5 connection
 def initialize_mt5():
@@ -244,8 +248,14 @@ def index():
     symbol_info = mt5_connector.get_symbol_info(config['trading']['symbol']) if mt5_connector.initialized else None
     open_positions = []  # We'll implement this when the ExecutorAgent is implemented
     
+    # Get all available prices
+    all_prices = live_feed.get_all_prices()
+    
     # Get trade statistics
     trade_stats = memory_agent.get_trade_statistics()
+    
+    # Determine if we're in simulation mode
+    simulation_mode = mt5_connector.simulation_mode if hasattr(mt5_connector, 'simulation_mode') else not MT5_AVAILABLE
     
     return render_template(
         'index.html',
@@ -255,7 +265,9 @@ def index():
         open_positions=open_positions,
         config=config,
         trade_stats=trade_stats,
-        MT5_AVAILABLE=MT5_AVAILABLE
+        MT5_AVAILABLE=MT5_AVAILABLE,
+        all_prices=all_prices,
+        simulation_mode=simulation_mode
     )
 
 @app.route('/analyze', methods=['GET', 'POST'])
@@ -414,5 +426,10 @@ if not os.path.exists('config.yaml'):
 
 # Initialize the system when the module loads
 if __name__ == '__main__':
+    # Auto-start the trading system when the app launches
+    # This ensures data is flowing as soon as the app starts
+    start_system()
+    logger.info("Trading system auto-started on application launch")
+    
     # Start the Flask app
     app.run(host='0.0.0.0', port=5000, debug=True)

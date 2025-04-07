@@ -36,7 +36,8 @@ class LiveFeed:
         # Stream settings
         self.update_interval = config.get('update_interval', 1.0)  # seconds
         self.symbols = config.get('symbols', ['BTCUSD'])
-        self.enable_websocket = config.get('enable_websocket', True)
+        # Disable WebSocket by default - HTTP polling works better across all environments
+        self.enable_websocket = False  # WebSockets often fail in various environments
         self.websocket_port = config.get('websocket_port', 8765)
         
         # Check simulation mode
@@ -56,9 +57,24 @@ class LiveFeed:
         # Simulation price variables
         self.last_sim_update = time.time()
         self.sim_price_base = {
-            'BTCUSD': 60000.0,
-            'ETHUSD': 4000.0,
-            'XRPUSD': 1.0,
+            'BTCUSD': 65000.0,
+            'ETHUSD': 3200.0,
+            'XRPUSD': 0.50,
+            'LTCUSD': 85.0,
+            'EURUSD': 1.08,
+            'USDJPY': 149.5,
+            'GBPUSD': 1.26,
+        }
+        # For more realistic price simulation
+        self.price_trends = {}  # Track price trends for each symbol
+        self.volatility_factors = {
+            'BTCUSD': 0.002,    # 0.2% volatility for Bitcoin
+            'ETHUSD': 0.0025,   # 0.25% volatility for Ethereum
+            'XRPUSD': 0.003,    # 0.3% volatility for Ripple
+            'LTCUSD': 0.0015,   # 0.15% volatility for Litecoin
+            'EURUSD': 0.0003,   # 0.03% volatility for EUR/USD
+            'USDJPY': 0.0005,   # 0.05% volatility for USD/JPY
+            'GBPUSD': 0.0004,   # 0.04% volatility for GBP/USD
         }
         
         # Thread control
@@ -300,7 +316,7 @@ class LiveFeed:
                 
     def _generate_simulated_price(self, symbol):
         """
-        Generate simulated price data for a symbol.
+        Generate simulated price data for a symbol with realistic market movements.
         
         Args:
             symbol (str): The symbol to generate price for.
@@ -309,8 +325,37 @@ class LiveFeed:
             dict: Simulated price data.
         """
         import random
+        import math
         
-        # Get base price for this symbol, default to 1000.0 if not defined
+        # For symbols not initialized yet, set realistic default base prices
+        if symbol not in self.sim_price_base:
+            if symbol == 'BTCUSD':
+                self.sim_price_base[symbol] = 65000.0
+            elif symbol == 'ETHUSD':
+                self.sim_price_base[symbol] = 3200.0
+            elif symbol == 'XRPUSD':
+                self.sim_price_base[symbol] = 0.50
+            elif symbol == 'LTCUSD':
+                self.sim_price_base[symbol] = 85.0
+            elif 'JPY' in symbol:
+                self.sim_price_base[symbol] = 150.0
+            elif 'USD' in symbol:
+                self.sim_price_base[symbol] = 1.1
+            else:
+                self.sim_price_base[symbol] = 1000.0
+                
+            # Initialize volatility factors for each symbol
+            if symbol not in self.volatility_factors:
+                if symbol == 'BTCUSD':
+                    self.volatility_factors[symbol] = 0.002  # 0.2% volatility
+                elif 'JPY' in symbol:
+                    self.volatility_factors[symbol] = 0.0005  # 0.05% volatility
+                elif 'USD' in symbol:
+                    self.volatility_factors[symbol] = 0.0003  # 0.03% volatility
+                else:
+                    self.volatility_factors[symbol] = 0.001  # 0.1% base volatility
+        
+        # Get base price for this symbol
         base_price = self.sim_price_base.get(symbol, 1000.0)
         
         # Calculate time since last update to scale volatility
@@ -318,15 +363,38 @@ class LiveFeed:
         time_diff = now - self.last_sim_update
         self.last_sim_update = now
         
-        # Add some simulated volatility (more realistic price movement)
-        volatility = base_price * 0.001  # 0.1% base volatility
+        # Initialize price trend if not exists (0 = neutral, positive = uptrend, negative = downtrend)
+        if symbol not in self.price_trends:
+            self.price_trends[symbol] = 0
+            
+        # Randomly change trend with low probability (5%)
+        if random.random() < 0.05:
+            # Change trend: values between -5 and 5 (stronger trends are less common)
+            self.price_trends[symbol] = random.choices(
+                list(range(-5, 6)), 
+                weights=[1, 2, 3, 5, 8, 10, 8, 5, 3, 2, 1]
+            )[0]
+            
+        # Get symbol's volatility factor
+        volatility = base_price * self.volatility_factors.get(symbol, 0.001)
         
-        # Generate a random price movement
+        # Apply trend bias to price movement
+        trend_bias = self.price_trends[symbol] / 10.0  # Scale between -0.5 and 0.5
+        
+        # Generate a random price movement with trend bias
         # Use time difference to scale movement (larger movements over longer periods)
-        movement = random.uniform(-1, 1) * volatility * min(time_diff, 10)
+        random_factor = random.normalvariate(trend_bias, 1.0)  # Normal distribution with trend bias
+        movement = random_factor * volatility * min(time_diff, 10)
+        
+        # Add a sine wave component for more natural price oscillation
+        hour_of_day = datetime.now().hour + datetime.now().minute / 60.0
+        sine_factor = math.sin(hour_of_day * math.pi / 12) * volatility * 2  # Gives a daily cycle
         
         # Calculate new price
-        new_price = base_price + movement
+        new_price = base_price + movement + sine_factor
+        
+        # Make sure price doesn't go negative
+        new_price = max(0.1, new_price)
         
         # Update the base price for next time
         self.sim_price_base[symbol] = new_price
@@ -335,12 +403,21 @@ class LiveFeed:
         spread_pct = random.uniform(0.0001, 0.0005)
         spread_amount = new_price * spread_pct
         
+        # Set digits for rounding based on symbol type
+        digits = 2  # Default
+        if symbol == 'BTCUSD':
+            digits = 1  # Bitcoin prices often shown with 1 decimal
+        elif 'JPY' in symbol:
+            digits = 3  # JPY pairs often have 3 decimals
+        elif 'USD' in symbol or 'EUR' in symbol:
+            digits = 5  # Forex majors often have 5 decimals
+            
         # Return formatted price data
         return {
             'symbol': symbol,
-            'bid': max(0.1, round(new_price - (spread_amount/2), 2)),
-            'ask': max(0.1, round(new_price + (spread_amount/2), 2)),
-            'spread': round(spread_amount * 100, 2),  # convert to points
+            'bid': round(new_price - (spread_amount/2), digits),
+            'ask': round(new_price + (spread_amount/2), digits),
+            'spread': round(spread_amount * 100, digits),  # convert to points
             'time': datetime.now().isoformat(),
             'simulated': True  # Mark as simulated data
         }

@@ -690,25 +690,35 @@ if __name__ == '__main__':
         # Create and start WebSocket server
         logger.info("Starting WebSocket server on port 5678")
         
-        # Use a simpler approach for the WebSocket server
-        import asyncio
-        import websockets
-        
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        # Define a simple server
-        start_server = websockets.serve(websocket_handler, "0.0.0.0", 5678, loop=loop)
-        
-        # Start the server
         try:
-            loop.run_until_complete(start_server)
-            logger.info("WebSocket server started on port 5678")
-            loop.run_forever()
+            # Use a simpler approach for the WebSocket server
+            import asyncio
+            import websockets
+            
+            # Create a new event loop in this thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            # Define the async server startup function
+            async def start_server():
+                server = await websockets.serve(websocket_handler, "0.0.0.0", 5678)
+                logger.info("WebSocket server started on port 5678")
+                # Keep the server running
+                await asyncio.Future()  # This will run forever until cancelled
+            
+            # Run the server
+            loop.run_until_complete(start_server())
+        except ImportError:
+            logger.error("WebSockets package not available - continuing without WebSocket functionality")
+        except RuntimeError as e:
+            if "no running event loop" in str(e):
+                logger.error(f"WebSocket server error (asyncio issue): {str(e)}")
+                logger.info("Continuing with fallback polling mechanism instead of WebSockets")
+            else:
+                logger.error(f"WebSocket server runtime error: {str(e)}")
         except Exception as e:
             logger.error(f"WebSocket server error: {str(e)}")
-        finally:
-            loop.close()
+            logger.info("Continuing with fallback polling mechanism instead of WebSockets")
     
     # Start WebSocket server in a thread
     websocket_thread = threading.Thread(target=start_websocket_server)

@@ -1,0 +1,34 @@
+2025-04-07 14:30:23,411 - werkzeug - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.132.94:5000
+2025-04-07 14:30:23,411 - werkzeug - INFO - Press CTRL+C to quit
+2025-04-07 14:30:23,412 - werkzeug - INFO -  * Restarting with stat
+2025-04-07 14:30:24,906 - __main__ - INFO - Starting WebSocket server on port 5678
+2025-04-07 14:30:24,915 - MT5Connector - INFO - MT5 account already logged in
+2025-04-07 14:30:24,915 - __main__ - INFO - MT5 connection initialized successfully
+2025-04-07 14:30:24,916 - LiveFeed - INFO - Price polling thread started
+2025-04-07 14:30:24,917 - LiveFeed - INFO - Starting WebSocket server on port 5678
+2025-04-07 14:30:24,917 - LiveFeed - INFO - WebSocket server thread started
+2025-04-07 14:30:24,917 - LiveFeed - INFO - Live feed started with symbols: ['BTCUSD'] in live mode
+2025-04-07 14:30:24,917 - __main__ - INFO - Scheduler setup complete
+2025-04-07 14:30:24,917 - __main__ - INFO - Scheduler thread started
+2025-04-07 14:30:24,918 - __main__ - INFO - Trading system started
+2025-04-07 14:30:24,918 - __main__ - INFO - Trading system auto-started on application launch
+Exception in thread Thread-1 (start_websocket_server):
+2025-04-07 14:30:24,937 - LiveFeed - ERROR - Error starting WebSocket server: no running event loop
+Traceback (most recent call last):
+  File "C:\Users\pc\AppData\Local\Programs\Python\Python312\Lib\threading.py", line 1052, in _bootstrap_inner
+    self.run()
+  File "C:\Users\pc\AppData\Local\Programs\Python\Python312\Lib\threading.py", line 989, in run
+    self._target(*self._args, **self._kwargs)
+2025-04-07 14:30:24,940 - werkzeug - WARNING -  * Debugger is active!
+  File "C:\Users\pc\Desktop\AITrade PRo\AITraderPro\main.py", line 701, in start_websocket_server
+    start_server = websockets.serve(websocket_handler, "0.0.0.0", 5678, loop=loop)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pc\Desktop\AITrade PRo\AITraderPro\.venv\Lib\site-packages\websockets\asyncio\server.py", line 743, in __init__
+    self.server = Server(
+                  ^^^^^^^
+  File "C:\Users\pc\Desktop\AITrade PRo\AITraderPro\.venv\Lib\site-packages\websockets\asyncio\server.py", line 284, in __init__
+    self.loop = asyncio.get_running_loop()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^

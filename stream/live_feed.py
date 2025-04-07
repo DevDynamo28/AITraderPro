@@ -448,31 +448,29 @@ class LiveFeed:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
-            # Create a simpler server setup
-            start_server = websockets.serve(
-                self._websocket_handler,
-                '0.0.0.0',
-                self.websocket_port,
-                loop=loop
-            )
-            
-            # Run the server with proper error handling
-            try:
-                loop.run_until_complete(start_server)
+            # Define the async server startup function
+            async def start_server():
+                server = await websockets.serve(
+                    self._websocket_handler,
+                    '0.0.0.0',
+                    self.websocket_port
+                )
                 self.logger.info(f"WebSocket server started successfully on port {self.websocket_port}")
-                loop.run_forever()
-            except Exception as e:
-                self.logger.error(f"Error in WebSocket server: {str(e)}")
-                if "no running event loop" in str(e):
-                    self.logger.warning("No running event loop - WebSocket disabled but simulation will continue")
-                # Don't crash the thread, just log the error
-            finally:
-                if loop.is_running():
-                    loop.close()
-                    
+                # Keep the server running
+                await asyncio.Future()  # This will run forever until cancelled
+            
+            # Run the server
+            loop.run_until_complete(start_server())
+        
+        except RuntimeError as e:
+            # Most likely "no running event loop" error
+            self.logger.error(f"WebSocket server error (asyncio issue): {str(e)}")
+            self.logger.info("Continuing with fallback polling mechanism instead of WebSockets")
+        
         except Exception as e:
-            self.logger.error(f"Error starting WebSocket server: {str(e)}")
-            # Safely continue even if WebSocket fails
+            # Any other error
+            self.logger.error(f"Error in WebSocket server: {str(e)}")
+            self.logger.info("WebSocket disabled but price polling will continue")
     
     async def _websocket_handler(self, websocket, path):
         """

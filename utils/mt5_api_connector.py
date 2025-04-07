@@ -29,9 +29,9 @@ class MT5APIConnector:
         self.mt5_server = os.environ.get('MT5_SERVER') or self.config.get('server')
         
         # API Configuration
-        self.api_url = self.config.get('api_url', 'https://mt5api.example.com')
+        self.api_url = os.environ.get('MT5_API_URL') or self.config.get('api_url', 'https://mt5api.example.com')
         self.api_port = self.config.get('api_port', 443)
-        self.api_key = self.config.get('api_key')
+        self.api_key = os.environ.get('MT5_API_KEY') or self.config.get('api_key')
         
         # Convert login to int if it's a string containing only digits
         if isinstance(self.mt5_login, str) and self.mt5_login.isdigit():
@@ -47,11 +47,68 @@ class MT5APIConnector:
         if self.initialized:
             return True
         
-        # For now, just initialize in simulation mode since we don't have a real MT5 API server
-        self.logger.info("Using simulation mode since no real MT5 API server is available")
-        self.simulation_mode = True
-        self.initialized = True
-        return True
+        try:
+            # Check if we have credentials
+            if not self.mt5_login or not self.mt5_password or not self.mt5_server:
+                self.logger.warning("Missing MT5 credentials, using simulation mode")
+                self.simulation_mode = True
+                self.initialized = True
+                return True
+            
+            # Check if API URL is missing completely
+            if not self.api_url:
+                self.logger.warning("Missing MT5 API URL, using simulation mode")
+                self.simulation_mode = True
+                self.initialized = True
+                return True
+            
+            # Set real API URL based on MT5 server if needed
+            # For some hosted MT5 brokers, we can build the API URL from the server information
+            if self.api_url == 'https://mt5api.example.com':
+                # Try to create a real API URL from the MT5 server
+                if "." in self.mt5_server:
+                    # If server contains domain info, use it as base
+                    self.api_url = f"https://{self.mt5_server}/api"
+                    self.logger.info(f"Using MT5 server domain for API URL: {self.api_url}")
+                else:
+                    # Otherwise try to ping the common MT5 API endpoint formats
+                    test_urls = [
+                        f"https://mt5.{self.mt5_server}.com/api",
+                        f"https://{self.mt5_server}-mt5.trade/api",
+                        f"https://mt5api.{self.mt5_server}.com"
+                    ]
+                    
+                    for url in test_urls:
+                        try:
+                            self.logger.info(f"Testing MT5 API URL: {url}")
+                            response = requests.get(f"{url}/ping", timeout=5)
+                            if response.status_code == 200:
+                                self.api_url = url
+                                self.logger.info(f"Found working MT5 API URL: {url}")
+                                break
+                        except Exception:
+                            pass
+            
+            # Try to ping the API
+            response = self.make_api_call('/ping', {})
+            
+            if response and response.get('status') == 'success':
+                self.logger.info("Successfully connected to MT5 API")
+                self.initialized = True
+                self.simulation_mode = False
+                return True
+            else:
+                self.logger.warning("Could not connect to MT5 API, falling back to simulation mode")
+                self.simulation_mode = True
+                self.initialized = True
+                return True
+                
+        except Exception as e:
+            self.logger.error(f"Error connecting to MT5 API: {str(e)}")
+            self.logger.warning("Falling back to simulation mode")
+            self.simulation_mode = True
+            self.initialized = True
+            return True
         
     def ensure_initialized(self):
         """
@@ -97,7 +154,22 @@ class MT5APIConnector:
             request_params = {**auth_params, **params}
             
             # Make the API call
-            url = f"{self.api_url}:{self.api_port}{endpoint}"
+            # Check if API URL is available
+            if not self.api_url:
+                self.logger.error("API URL is not set")
+                return None
+                
+            # Check if the URL already contains the port
+            if ":" in self.api_url.split("//")[1]:
+                url = f"{self.api_url}{endpoint}"
+            else:
+                # Only add port if it's not the default HTTPS port 443
+                if self.api_port == 443:
+                    url = f"{self.api_url}{endpoint}"
+                else:
+                    url = f"{self.api_url}:{self.api_port}{endpoint}"
+            
+            self.logger.info(f"Making API call to {url}")
             response = requests.post(url, json=request_params, timeout=10)
             
             if response.status_code == 200:

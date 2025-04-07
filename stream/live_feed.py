@@ -275,15 +275,20 @@ class LiveFeed:
                     
                     if symbol_info is None:
                         # If MT5 can't provide data, fallback to simulation for this symbol
+                        self.logger.warning(f"Could not get real data for {symbol}, using simulated data")
                         price_data = self._generate_simulated_price(symbol)
                     else:
-                        # Format the price data from MT5
+                        # Check if the data is simulated (from MT5APIConnector)
+                        is_simulated = symbol_info.get('simulated', False)
+                        
+                        # Format the price data from MT5 or API
                         price_data = {
                             'symbol': symbol,
-                            'bid': symbol_info['bid'],
-                            'ask': symbol_info['ask'],
-                            'spread': symbol_info['spread'],
-                            'time': datetime.now().isoformat()
+                            'bid': symbol_info.get('bid', 0.0),
+                            'ask': symbol_info.get('ask', 0.0),
+                            'spread': symbol_info.get('spread', 0.0),
+                            'time': datetime.now().isoformat(),
+                            'simulated': is_simulated
                         }
                 
                 # Check if price has changed

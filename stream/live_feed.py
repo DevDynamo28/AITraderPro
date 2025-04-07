@@ -36,8 +36,8 @@ class LiveFeed:
         # Stream settings
         self.update_interval = config.get('update_interval', 1.0)  # seconds
         self.symbols = config.get('symbols', ['BTCUSD'])
-        # Disable WebSocket by default - HTTP polling works better across all environments
-        self.enable_websocket = False  # WebSockets often fail in various environments
+        # Enable WebSocket for real-time updates
+        self.enable_websocket = True  # Enable for real-time price updates
         self.websocket_port = config.get('websocket_port', 8765)
         
         # Check simulation mode
@@ -429,39 +429,40 @@ class LiveFeed:
     
     def _start_websocket_server(self):
         """
-        Start WebSocket server for streaming prices.
+        Start WebSocket server for streaming prices with better error handling.
         """
         self.logger.info(f"Starting WebSocket server on port {self.websocket_port}")
         
         try:
-            # Create event loop in the new thread
+            # Create a new event loop in this thread
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
-            # Set up the WebSocket server
+            # Create a simpler server setup
+            start_server = websockets.serve(
+                self._websocket_handler,
+                '0.0.0.0',
+                self.websocket_port,
+                loop=loop
+            )
+            
+            # Run the server with proper error handling
             try:
-                start_server = websockets.serve(
-                    self._websocket_handler,
-                    '0.0.0.0',
-                    self.websocket_port
-                )
-                
-                # Run the server until the thread is stopped
                 loop.run_until_complete(start_server)
+                self.logger.info(f"WebSocket server started successfully on port {self.websocket_port}")
                 loop.run_forever()
             except Exception as e:
-                self.logger.error(f"Error in WebSocket serve: {str(e)}")
-                # Don't re-raise, continue in simulation mode without WebSocket
-        except RuntimeError as e:
-            if "no running event loop" in str(e):
-                self.logger.warning("No running event loop - WebSocket disabled but simulation will continue")
-                # This is expected in some environments, just continue without WebSocket
-            else:
-                self.logger.error(f"Runtime error in WebSocket server: {str(e)}")
+                self.logger.error(f"Error in WebSocket server: {str(e)}")
+                if "no running event loop" in str(e):
+                    self.logger.warning("No running event loop - WebSocket disabled but simulation will continue")
+                # Don't crash the thread, just log the error
+            finally:
+                if loop.is_running():
+                    loop.close()
+                    
         except Exception as e:
             self.logger.error(f"Error starting WebSocket server: {str(e)}")
             # Safely continue even if WebSocket fails
-            pass
     
     async def _websocket_handler(self, websocket, path):
         """
@@ -559,21 +560,23 @@ class LiveFeed:
             
         # Use asyncio to send messages
         try:
-            # Try to get the current event loop
-            loop = asyncio.get_event_loop()
+            # Try to get the current event loop or create a new one if needed
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                # Create a new event loop if none exists in this thread
+                self.logger.debug("No running event loop, creating a new one for broadcast")
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
             
+            # Create and run tasks for each client
             for websocket in clients:
+                # Use run_coroutine_threadsafe to safely run coroutines from a different thread
                 asyncio.run_coroutine_threadsafe(
                     self._safe_send(websocket, message),
                     loop
                 )
-        except RuntimeError as e:
-            if "no running event loop" in str(e):
-                # This is expected in some environments
-                # Just log at debug level and continue
-                pass
-            else:
-                self.logger.error(f"Error broadcasting message: {str(e)}")
+                
         except Exception as e:
             self.logger.error(f"Error broadcasting message: {str(e)}")
     

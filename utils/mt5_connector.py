@@ -255,6 +255,17 @@ class MT5Connector:
         # Only use simulation as a fallback
         self.simulation_mode = False
     
+    def ensure_initialized(self):
+        """
+        Ensure the connection to MT5 is initialized.
+        
+        Returns:
+            bool: True if initialization is successful or already initialized, False otherwise.
+        """
+        if self.initialized:
+            return True
+        return self.initialize()
+        
     def initialize(self):
         """
         Initialize the connection to the MT5 platform.
@@ -982,33 +993,4 @@ class MT5Connector:
                 }
             return None
     
-    def ensure_initialized(self):
-        """
-        Ensure that MT5 is initialized, try to initialize if not.
-        
-        Returns:
-            bool: True if initialized, False otherwise.
-        """
-        if not self.initialized:
-            return self.initialize()
-        
-        # In simulation mode, we're always initialized
-        if self.simulation_mode or not MT5_AVAILABLE:
-            return True
-            
-        # Check if MT5 is still running
-        try:
-            if not mt5.terminal_info():
-                return self.initialize()
-        except Exception as e:
-            self.logger.error(f"Error checking MT5 terminal info: {str(e)}")
-            
-            # Fall back to simulation mode on exception if enabled
-            if self.config.get('simulation_fallback', True):
-                self.logger.info("Falling back to simulation mode due to terminal info error")
-                self.simulation_mode = True
-                return True
-            
-            return self.initialize()
-        
-        return True
+    # Method removed to avoid duplication with earlier ensure_initialized

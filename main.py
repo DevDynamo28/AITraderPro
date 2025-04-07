@@ -40,10 +40,18 @@ from utils.market_data import MarketDataUtil
 # Import stream module
 from stream.live_feed import LiveFeed
 
+# Import for WebSocket support
+import asyncio
+import websockets
+
 # Import agent modules
 from agents.memory_agent import MemoryAgent
 from agents.reflection_agent import ReflectionAgent
 from agents.strategy_agent import StrategyAgent
+from agents.executor_agent import ExecutorAgent
+
+# WebSocket clients dictionary
+websocket_clients = set()
 
 # Define Flask app
 app = Flask(__name__)
@@ -171,9 +179,11 @@ def perform_market_analysis():
 
 def on_price_update(symbol, price_data):
     """Callback function for price updates."""
-    # Currently just for demonstration
-    # This could trigger actions on price movements
-    pass
+    # Broadcast price update to all WebSocket clients
+    broadcast_price_update(price_data)
+    
+    # This function can also be extended to check for trade conditions
+    # based on price updates, execute automated trading strategies, etc.
 
 def setup_scheduler():
     """Set up scheduled tasks."""
@@ -377,15 +387,20 @@ def settings():
 @app.route('/api/prices')
 def api_prices():
     """API endpoint for current prices."""
-    symbol = request.args.get('symbol', config['trading']['symbol'])
+    symbol = request.args.get('symbol')
     
-    # Get price data
-    price = live_feed.get_last_price(symbol)
-    
-    if price:
-        return jsonify(price)
+    if symbol:
+        # Get specific symbol price
+        price = live_feed.get_last_price(symbol)
+        
+        if price:
+            return jsonify(price)
+        else:
+            return jsonify({'error': f'Price not available for {symbol}'})
     else:
-        return jsonify({'error': 'Price not available'})
+        # Return all prices
+        prices = live_feed.get_all_prices()
+        return jsonify({'prices': prices})
 
 @app.route('/api/status')
 def api_status():
@@ -428,13 +443,278 @@ def control_reset():
     result = start_system()
     return jsonify({'success': result})
 
+@app.route('/api/positions')
+def api_positions():
+    """API endpoint for open positions."""
+    # If ExecutorAgent is initialized and provides this functionality, use it
+    # Otherwise get positions directly from MT5
+    positions = []
+    
+    if mt5_connector.initialized:
+        positions = mt5_connector.get_positions()
+    
+    return jsonify({'positions': positions})
+
+@app.route('/api/account')
+def api_account():
+    """API endpoint for account information."""
+    account_info = None
+    
+    if mt5_connector.initialized:
+        account_info = mt5_connector.get_account_info()
+    
+    return jsonify({'account': account_info})
+
+@app.route('/close-position', methods=['POST'])
+def close_position():
+    """Close a position."""
+    position_id = request.form.get('position_id')
+    
+    if not position_id:
+        return jsonify({'success': False, 'error': 'Position ID required'})
+    
+    try:
+        position_id = int(position_id)
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Invalid Position ID'})
+    
+    if mt5_connector.initialized:
+        result = mt5_connector.close_position(position_id)
+        if result:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to close position'})
+    else:
+        return jsonify({'success': False, 'error': 'MT5 not connected'})
+
 # Create default config file if it doesn't exist
 if not os.path.exists('config.yaml'):
     with open('config.yaml', 'w') as config_file:
         yaml.dump(config, config_file, default_flow_style=False)
 
+# Define WebSocket handler
+async def websocket_handler(websocket, path):
+    """Handle WebSocket connections."""
+    websocket_clients.add(websocket)
+    logger.info(f"New WebSocket client connected, current count: {len(websocket_clients)}")
+    
+    try:
+        # Send initial data
+        await send_system_status(websocket)
+        
+        if mt5_connector.initialized:
+            # Send account info
+            account_info = mt5_connector.get_account_info()
+            if account_info:
+                await send_account_update(websocket, account_info)
+            
+            # Send positions
+            positions = mt5_connector.get_positions()
+            if positions:
+                await send_position_update(websocket, {"full_update": True, "positions": positions})
+            
+            # Send current prices
+            all_prices = live_feed.get_all_prices()
+            for symbol, price_data in all_prices.items():
+                await send_price_update(websocket, price_data)
+        
+        # Keep connection alive and handle client messages
+        while True:
+            message = await websocket.recv()
+            await handle_client_message(websocket, message)
+            
+    except websockets.exceptions.ConnectionClosed:
+        logger.info("WebSocket client disconnected")
+    finally:
+        websocket_clients.remove(websocket)
+
+async def handle_client_message(websocket, message):
+    """Handle messages from WebSocket clients."""
+    try:
+        data = json.loads(message)
+        message_type = data.get('type')
+        
+        if message_type == 'subscribe':
+            # Handle subscription to specific data
+            symbols = data.get('symbols', [])
+            for symbol in symbols:
+                if symbol not in live_feed.symbols:
+                    live_feed.add_symbol(symbol)
+        
+        elif message_type == 'unsubscribe':
+            # Handle unsubscription
+            symbols = data.get('symbols', [])
+            for symbol in symbols:
+                if symbol in live_feed.symbols and symbol != config['trading']['symbol']:
+                    live_feed.remove_symbol(symbol)
+                    
+        elif message_type == 'request_data':
+            # Handle data requests
+            data_type = data.get('data_type')
+            
+            if data_type == 'account':
+                account_info = mt5_connector.get_account_info()
+                if account_info:
+                    await send_account_update(websocket, account_info)
+            
+            elif data_type == 'positions':
+                positions = mt5_connector.get_positions()
+                await send_position_update(websocket, {"full_update": True, "positions": positions})
+            
+            elif data_type == 'prices':
+                symbol = data.get('symbol')
+                if symbol:
+                    price = live_feed.get_last_price(symbol)
+                    if price:
+                        await send_price_update(websocket, price)
+                else:
+                    all_prices = live_feed.get_all_prices()
+                    for symbol, price_data in all_prices.items():
+                        await send_price_update(websocket, price_data)
+        
+    except json.JSONDecodeError:
+        logger.warning(f"Received invalid JSON from client: {message}")
+    except Exception as e:
+        logger.error(f"Error handling client message: {str(e)}")
+
+async def send_price_update(websocket, price_data):
+    """Send price update to a WebSocket client."""
+    message = {
+        'type': 'price_update',
+        'data': price_data
+    }
+    await safe_send(websocket, json.dumps(message))
+
+async def send_account_update(websocket, account_data):
+    """Send account update to a WebSocket client."""
+    message = {
+        'type': 'account_update',
+        'data': account_data
+    }
+    await safe_send(websocket, json.dumps(message))
+
+async def send_position_update(websocket, position_data):
+    """Send position update to a WebSocket client."""
+    message = {
+        'type': 'position_update',
+        'data': position_data
+    }
+    await safe_send(websocket, json.dumps(message))
+
+async def send_system_status(websocket):
+    """Send system status to a WebSocket client."""
+    message = {
+        'type': 'system_status',
+        'data': {
+            'is_running': is_running,
+            'mt5_connected': mt5_connector.initialized,
+            'auto_trading': config['trading'].get('enable_auto_trading', False)
+        }
+    }
+    await safe_send(websocket, json.dumps(message))
+
+async def safe_send(websocket, message):
+    """Safely send a message to a WebSocket client."""
+    try:
+        await websocket.send(message)
+    except websockets.exceptions.ConnectionClosed:
+        logger.debug("Failed to send message, connection closed")
+    except Exception as e:
+        logger.error(f"Error sending message: {str(e)}")
+
+def broadcast_price_update(price_data):
+    """Broadcast price update to all connected clients."""
+    if not websocket_clients:
+        return
+    
+    message = {
+        'type': 'price_update',
+        'data': price_data
+    }
+    
+    try:
+        # Get the current event loop or create a new one
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            # Create a new event loop if none exists in this thread
+            logger.debug("No running event loop, creating a new one for broadcast")
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        # Run the broadcast in the event loop
+        asyncio.run_coroutine_threadsafe(
+            broadcast_message(json.dumps(message)),
+            loop
+        )
+    except Exception as e:
+        logger.error(f"Error in broadcast_price_update: {str(e)}")
+
+async def broadcast_message(message):
+    """Broadcast a message to all connected clients."""
+    if not websocket_clients:
+        return
+        
+    disconnected_clients = set()
+    
+    for client in websocket_clients:
+        try:
+            await client.send(message)
+        except websockets.exceptions.ConnectionClosed:
+            disconnected_clients.add(client)
+        except Exception as e:
+            logger.error(f"Error broadcasting message: {str(e)}")
+            disconnected_clients.add(client)
+    
+    # Clean up disconnected clients
+    for client in disconnected_clients:
+        websocket_clients.remove(client)
+
+# We're now using the on_price_update at the top of the file
+# This callback will broadcast to WebSocket clients
+
+# WebSocket route to serve the WebSocket connection
+@app.route('/ws')
+def websocket_route():
+    """WebSocket route."""
+    return "WebSocket endpoint is available at this URL. Use JavaScript WebSocket API to connect."
+
 # Initialize the system when the module loads
 if __name__ == '__main__':
+    # Start WebSocket server in a separate thread
+    import threading
+    
+    # Define WebSocket server function
+    def start_websocket_server():
+        """Start the WebSocket server."""
+        # Create and start WebSocket server
+        logger.info("Starting WebSocket server on port 5678")
+        
+        # Use a simpler approach for the WebSocket server
+        import asyncio
+        import websockets
+        
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        # Define a simple server
+        start_server = websockets.serve(websocket_handler, "0.0.0.0", 5678, loop=loop)
+        
+        # Start the server
+        try:
+            loop.run_until_complete(start_server)
+            logger.info("WebSocket server started on port 5678")
+            loop.run_forever()
+        except Exception as e:
+            logger.error(f"WebSocket server error: {str(e)}")
+        finally:
+            loop.close()
+    
+    # Start WebSocket server in a thread
+    websocket_thread = threading.Thread(target=start_websocket_server)
+    websocket_thread.daemon = True
+    websocket_thread.start()
+    
     # Auto-start the trading system when the app launches
     # This ensures data is flowing as soon as the app starts
     start_system()

@@ -45,10 +45,20 @@ An intelligent trading bot that leverages GPT-4 and LangChain to analyze BTCUSD 
    pip install openai langchain python-dotenv MetaTrader5 pandas pandas-ta chromadb flask schedule pyyaml websockets
    ```
 
-3. Set up your environment variables by creating a `.env` file:
+3. Set up your environment variables by copying `.env.example` to `.env` and filling in your credentials:
    ```
-   OPENAI_API_KEY=your_openai_api_key_here
+   # Copy the example file
+   cp .env.example .env
+   
+   # Edit the .env file with your actual API keys and credentials
+   nano .env   # or use your preferred text editor
    ```
+   
+   Required environment variables:
+   - `OPENAI_API_KEY`: Your OpenAI API key for AI analysis
+   - `MT5_SERVER`: Your MetaTrader 5 server address
+   - `MT5_LOGIN`: Your MetaTrader 5 account login
+   - `MT5_PASSWORD`: Your MetaTrader 5 account password
 
 4. Configure the system by editing `config.yaml` with your MetaTrader 5 credentials and trading preferences.
 

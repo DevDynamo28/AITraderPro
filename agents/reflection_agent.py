@@ -27,7 +27,18 @@ class ReflectionAgent:
         """
         self.config = config
         self.memory_agent = memory_agent
-        self.openai = OpenAI(api_key=OPENAI_API_KEY)
+        self.has_openai = False
+        
+        # Try to initialize OpenAI client if API key is available
+        if OPENAI_API_KEY:
+            try:
+                self.openai = OpenAI(api_key=OPENAI_API_KEY)
+                self.has_openai = True
+            except Exception as e:
+                logger.warning(f"Failed to initialize OpenAI client: {str(e)}")
+                logger.warning("Reflection agent will operate in limited mode without AI capabilities")
+        else:
+            logger.warning("No OpenAI API key found. Reflection agent will operate in limited mode")
         
         # Default periods for reflection (in days)
         self.periods = {
@@ -177,6 +188,11 @@ class ReflectionAgent:
         if not trades:
             return self._generate_empty_reflection(period)
             
+        # Check if OpenAI is available
+        if not self.has_openai or not hasattr(self, 'openai'):
+            logger.warning("OpenAI API is not available. Generating basic reflection.")
+            return self._generate_basic_reflection(trades, insights, stats, period)
+            
         # Prepare data for the prompt
         trades_json = json.dumps(trades, indent=2)
         insights_json = json.dumps(insights, indent=2)
@@ -245,7 +261,87 @@ Your response should be ONLY the JSON object, with no additional text.
             
         except Exception as e:
             logger.error(f"Error generating reflection: {str(e)}")
-            return self._generate_empty_reflection(period)
+            return self._generate_basic_reflection(trades, insights, stats, period)
+            
+    def _generate_basic_reflection(self, trades, insights, stats, period):
+        """
+        Generate a basic reflection when OpenAI is not available.
+        
+        Args:
+            trades (list): Trades to reflect on.
+            insights (list): Market insights for context.
+            stats (dict): Overall trading statistics.
+            period (str): Period of reflection.
+            
+        Returns:
+            dict: Basic reflection based on simple calculations.
+        """
+        # Calculate basic statistics
+        total_trades = len(trades)
+        
+        # Calculate profit and win rate
+        total_profit = 0
+        winning_trades = 0
+        
+        for trade in trades:
+            profit = trade.get('profit', 0)
+            total_profit += profit
+            if profit > 0:
+                winning_trades += 1
+                
+        win_rate = winning_trades / total_trades if total_trades > 0 else 0
+        avg_profit = total_profit / total_trades if total_trades > 0 else 0
+        
+        # Determine best strategy with simple heuristic
+        strategy_profits = {}
+        for trade in trades:
+            strategy = trade.get('strategy', 'unknown')
+            profit = trade.get('profit', 0)
+            
+            if strategy not in strategy_profits:
+                strategy_profits[strategy] = {'total': 0, 'count': 0}
+                
+            strategy_profits[strategy]['total'] += profit
+            strategy_profits[strategy]['count'] += 1
+            
+        best_strategy = 'unknown'
+        best_profit = -float('inf')
+        
+        for strategy, data in strategy_profits.items():
+            avg_strategy_profit = data['total'] / data['count'] if data['count'] > 0 else 0
+            if avg_strategy_profit > best_profit:
+                best_profit = avg_strategy_profit
+                best_strategy = strategy
+        
+        return {
+            "period": period,
+            "timestamp": datetime.now().isoformat(),
+            "summary": f"{total_trades} trades executed with a win rate of {win_rate:.2%} and total profit of {total_profit:.2f}.",
+            "statistics": {
+                "total_trades": total_trades,
+                "win_rate": win_rate,
+                "total_profit": total_profit,
+                "avg_profit": avg_profit
+            },
+            "market_conditions": "Market analysis not available without OpenAI API.",
+            "best_strategy": best_strategy,
+            "strengths": [
+                "System continued to execute trades as programmed",
+                f"Win rate: {win_rate:.2%}"
+            ],
+            "weaknesses": [
+                "Limited analysis capabilities due to missing OpenAI API"
+            ],
+            "opportunities": [
+                "Add OpenAI API key to enable advanced analysis",
+                "Consider increasing trade frequency if win rate is above 50%"
+            ],
+            "recommendations": [
+                "Configure your OpenAI API key in environment variables",
+                "Review your trading strategies for the next period",
+                f"Focus on the {best_strategy} strategy which performed best"
+            ]
+        }
     
     def _generate_empty_reflection(self, period):
         """

@@ -26,7 +26,18 @@ class StrategyAgent:
         """
         self.config = config
         self.market_data_util = market_data_util
-        self.openai = OpenAI(api_key=OPENAI_API_KEY)
+        self.has_openai = False
+        
+        # Try to initialize OpenAI client if API key is available
+        if OPENAI_API_KEY:
+            try:
+                self.openai = OpenAI(api_key=OPENAI_API_KEY)
+                self.has_openai = True
+            except Exception as e:
+                logger.warning(f"Failed to initialize OpenAI client: {str(e)}")
+                logger.warning("Strategy agent will operate in limited mode without AI capabilities")
+        else:
+            logger.warning("No OpenAI API key found. Strategy agent will operate in limited mode")
         
         # Supported strategies
         self.supported_strategies = {
@@ -396,6 +407,16 @@ class StrategyAgent:
         Returns:
             dict: Strategy result.
         """
+        # Check if OpenAI is available
+        if not self.has_openai or not hasattr(self, 'openai'):
+            logger.warning("OpenAI API is not available. Skipping AI analysis.")
+            return {
+                'signal': 'neutral',
+                'confidence': 0.5,
+                'reasoning': "OpenAI API key is not configured. Unable to perform AI analysis.",
+                'summary': "AI analysis unavailable - using alternative strategies"
+            }
+        
         try:
             # Prepare data for the prompt
             recent_data = historical_data.tail(20).reset_index()

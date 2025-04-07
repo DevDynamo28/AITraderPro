@@ -9,6 +9,18 @@ import schedule
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 
+# Import environment loader
+from utils.env_loader import load_env_from_file, ensure_api_keys, print_env_setup_instructions
+
+# Load environment variables from .env file if available
+load_env_from_file()
+
+# Check if required environment variables are set
+missing_keys = ensure_api_keys()
+if missing_keys:
+    print_env_setup_instructions()
+    # Continue running but with limited functionality
+
 # Try to import MetaTrader5, but handle if it's not available
 try:
     import MetaTrader5 as mt5

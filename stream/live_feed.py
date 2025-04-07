@@ -38,7 +38,7 @@ class LiveFeed:
         self.symbols = config.get('symbols', ['BTCUSD'])
         # Enable WebSocket for real-time updates
         self.enable_websocket = True  # Enable for real-time price updates
-        self.websocket_port = config.get('websocket_port', 8765)
+        self.websocket_port = config.get('websocket_port', 5678)  # Using port 5678 to match frontend configuration
         
         # Check simulation mode
         self.simulation_mode = mt5_connector.simulation_mode if hasattr(mt5_connector, 'simulation_mode') else False

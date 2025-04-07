@@ -24,7 +24,7 @@ stream:
   symbols:
   - BTCUSD
   update_interval: 1.0
-  websocket_port: 8765
+  websocket_port: 5678
 trading:
   enable_auto_trading: false
   max_open_positions: 3

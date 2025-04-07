@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import math
 from typing import Dict, Any
 from datetime import datetime
 import time
@@ -234,15 +235,21 @@ class ExecutorAgent:
             # Handle partial close
             else:
                 positions = self.mt5.get_positions()
-                if positions is None:
+                if positions is None or len(positions) == 0:
                     return {"success": False, "error": "Failed to get positions", "position_id": position_id}
                 
-                position_data = positions[positions['ticket'] == position_id]
-                if len(position_data) == 0:
+                # Find the position in the list
+                position_data = None
+                for position in positions:
+                    if position.get('ticket') == position_id:
+                        position_data = position
+                        break
+                
+                if position_data is None:
                     return {"success": False, "error": "Position not found", "position_id": position_id}
                 
                 # Calculate volume to close
-                total_volume = position_data.iloc[0]['volume']
+                total_volume = position_data.get('volume', 0)
                 volume_to_close = total_volume * (percent / 100.0)
                 
                 # TODO: Implement partial close logic
@@ -269,21 +276,25 @@ class ExecutorAgent:
         try:
             # Get position information
             positions = self.mt5.get_positions()
-            if positions is None:
+            if positions is None or len(positions) == 0:
                 return {"success": False, "error": "Failed to get positions", "position_id": position_id}
             
-            position_data = positions[positions['ticket'] == position_id]
-            if len(position_data) == 0:
-                return {"success": False, "error": "Position not found", "position_id": position_id}
+            # Find the position in the list
+            position_data = None
+            for position in positions:
+                if position.get('ticket') == position_id:
+                    position_data = position
+                    break
             
-            position = position_data.iloc[0]
+            if position_data is None:
+                return {"success": False, "error": "Position not found", "position_id": position_id}
             
             # Use current SL/TP if new values not provided
             if new_sl is None:
-                new_sl = position['sl']
+                new_sl = position_data.get('sl', 0)
             
             if new_tp is None:
-                new_tp = position['tp']
+                new_tp = position_data.get('tp', 0)
             
             # TODO: Implement position modification
             # This would require additional MT5 connector methods
@@ -314,8 +325,8 @@ class ExecutorAgent:
             results = []
             success_count = 0
             
-            for _, position in positions.iterrows():
-                position_id = position['ticket']
+            for position in positions:
+                position_id = position.get('ticket', 0)
                 result = self.close_position(position_id)
                 
                 results.append(result)
@@ -463,12 +474,9 @@ class ExecutorAgent:
             list: Open positions.
         """
         try:
-            positions_df = self.mt5.get_positions(symbol=symbol)
-            if positions_df is None:
+            positions = self.mt5.get_positions(symbol=symbol)
+            if positions is None:
                 return []
-            
-            # Convert DataFrame to list of dictionaries
-            positions = positions_df.to_dict('records')
             
             # Clean up datetime objects for JSON serialization
             for position in positions:

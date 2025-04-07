@@ -341,15 +341,25 @@ class LiveFeed:
             asyncio.set_event_loop(loop)
             
             # Set up the WebSocket server
-            start_server = websockets.serve(
-                self._websocket_handler,
-                '0.0.0.0',
-                self.websocket_port
-            )
-            
-            # Run the server until the thread is stopped
-            loop.run_until_complete(start_server)
-            loop.run_forever()
+            try:
+                start_server = websockets.serve(
+                    self._websocket_handler,
+                    '0.0.0.0',
+                    self.websocket_port
+                )
+                
+                # Run the server until the thread is stopped
+                loop.run_until_complete(start_server)
+                loop.run_forever()
+            except Exception as e:
+                self.logger.error(f"Error in WebSocket serve: {str(e)}")
+                # Don't re-raise, continue in simulation mode without WebSocket
+        except RuntimeError as e:
+            if "no running event loop" in str(e):
+                self.logger.warning("No running event loop - WebSocket disabled but simulation will continue")
+                # This is expected in some environments, just continue without WebSocket
+            else:
+                self.logger.error(f"Runtime error in WebSocket server: {str(e)}")
         except Exception as e:
             self.logger.error(f"Error starting WebSocket server: {str(e)}")
             # Safely continue even if WebSocket fails

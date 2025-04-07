@@ -332,6 +332,25 @@ class MT5Connector:
             self.initialized = False
             self.logger.info("MT5 connection shutdown.")
     
+    def _get_simulated_account_info(self):
+        """
+        Get simulated account information when MT5 is not available.
+        
+        Returns:
+            dict: Simulated account information
+        """
+        return {
+            'balance': 10000.0,
+            'equity': 10000.0,
+            'profit': 0.0,
+            'margin': 0.0,
+            'margin_free': 10000.0,
+            'margin_level': 100.0,
+            'leverage': 100,
+            'currency': 'USD',
+            'simulated': True  # Flag to indicate this is simulated data
+        }
+    
     def get_account_info(self):
         """
         Get the account information.
@@ -339,25 +358,103 @@ class MT5Connector:
         Returns:
             dict: The account information or None if failed.
         """
+        # If in simulation mode, return simulated data
+        if self.simulation_mode:
+            return self._get_simulated_account_info()
+        
+        # Ensure MT5 is initialized
         if not self.ensure_initialized():
-            return None
+            return self._get_simulated_account_info() if self.simulation_mode else None
         
-        account_info = mt5.account_info()
-        if account_info is None:
-            error = mt5.last_error()
-            self.logger.error(f"Failed to get account info. Error: {error[0]} - {error[1]}")
+        try:
+            account_info = mt5.account_info()
+            if account_info is None:
+                error = mt5.last_error()
+                self.logger.error(f"Failed to get account info. Error: {error[0]} - {error[1]}")
+                
+                # If we get a "No IPC connection" error, switch to simulation mode
+                if error[0] == -10004 and self.config.get('simulation_fallback', True):
+                    self.logger.warning("MT5 IPC connection lost, switching to simulation mode")
+                    self.simulation_mode = True
+                    return self._get_simulated_account_info()
+                
+                return None
+            
+            # Convert MT5 account info to a dictionary
+            return {
+                'balance': account_info.balance,
+                'equity': account_info.equity,
+                'profit': account_info.profit,
+                'margin': account_info.margin,
+                'margin_free': account_info.margin_free,
+                'margin_level': account_info.margin_level,
+                'leverage': account_info.leverage,
+                'currency': getattr(account_info, 'currency', 'USD'),
+                'simulated': False  # Flag to indicate this is real data
+            }
+        except Exception as e:
+            self.logger.error(f"Error getting account info: {str(e)}")
+            
+            # Fall back to simulation mode on exception if enabled
+            if self.config.get('simulation_fallback', True):
+                self.logger.warning("Error getting account info, switching to simulation mode")
+                self.simulation_mode = True
+                return self._get_simulated_account_info()
+            
             return None
+    
+    def _get_simulated_symbol_info(self, symbol):
+        """
+        Get simulated symbol information for a specific symbol.
         
-        # Convert MT5 account info to a dictionary
-        return {
-            'balance': account_info.balance,
-            'equity': account_info.equity,
-            'profit': account_info.profit,
-            'margin': account_info.margin,
-            'margin_free': account_info.margin_free,
-            'margin_level': account_info.margin_level,
-            'leverage': account_info.leverage,
+        Args:
+            symbol (str): The symbol to get information for.
+            
+        Returns:
+            dict: Simulated symbol information
+        """
+        # Default simulated values
+        simulated_data = {
+            'bid': 60000.0,
+            'ask': 60050.0,
+            'point': 0.01,
+            'digits': 2,
+            'spread': 50,
+            'volume_min': 0.01,
+            'volume_max': 10.0,
+            'volume_step': 0.01,
+            'trade_contract_size': 1.0,
+            'trade_tick_value': 1.0,
+            'trade_tick_size': 0.01,
+            'simulated': True  # Flag to indicate this is simulated data
         }
+        
+        # Customize for different symbols
+        if symbol == "EURUSD":
+            simulated_data.update({
+                'bid': 1.0890,
+                'ask': 1.0892,
+                'digits': 5,
+                'spread': 2,
+                'point': 0.00001
+            })
+        elif symbol == "ETHUSD":
+            simulated_data.update({
+                'bid': 3500.0,
+                'ask': 3505.0,
+                'digits': 2,
+                'spread': 50
+            })
+        elif symbol == "XRPUSD":
+            simulated_data.update({
+                'bid': 0.5245,
+                'ask': 0.5250,
+                'digits': 4,
+                'spread': 5,
+                'point': 0.0001
+            })
+        
+        return simulated_data
     
     def get_symbol_info(self, symbol):
         """
@@ -369,29 +466,181 @@ class MT5Connector:
         Returns:
             dict: The symbol information or None if failed.
         """
+        # If in simulation mode, return simulated data
+        if self.simulation_mode:
+            return self._get_simulated_symbol_info(symbol)
+        
+        # Ensure MT5 is initialized
         if not self.ensure_initialized():
-            return None
+            return self._get_simulated_symbol_info(symbol) if self.simulation_mode else None
         
-        symbol_info = mt5.symbol_info(symbol)
-        if symbol_info is None:
-            error = mt5.last_error()
-            self.logger.error(f"Failed to get symbol info for {symbol}. Error: {error[0]} - {error[1]}")
+        try:
+            symbol_info = mt5.symbol_info(symbol)
+            if symbol_info is None:
+                error = mt5.last_error()
+                self.logger.error(f"Failed to get symbol info for {symbol}. Error: {error[0]} - {error[1]}")
+                
+                # If we get a "No IPC connection" error, switch to simulation mode
+                if error[0] == -10004 and self.config.get('simulation_fallback', True):
+                    self.logger.warning(f"MT5 IPC connection lost for {symbol}, switching to simulation mode")
+                    self.simulation_mode = True
+                    return self._get_simulated_symbol_info(symbol)
+                
+                return None
+            
+            # Convert MT5 symbol info to a dictionary
+            return {
+                'bid': symbol_info.bid,
+                'ask': symbol_info.ask,
+                'point': symbol_info.point,
+                'digits': symbol_info.digits,
+                'spread': symbol_info.spread,
+                'volume_min': symbol_info.volume_min,
+                'volume_max': symbol_info.volume_max,
+                'volume_step': symbol_info.volume_step,
+                'trade_contract_size': symbol_info.trade_contract_size,
+                'trade_tick_value': symbol_info.trade_tick_value,
+                'trade_tick_size': symbol_info.trade_tick_size,
+                'simulated': False  # Flag to indicate this is real data
+            }
+        except Exception as e:
+            self.logger.error(f"Error getting symbol info for {symbol}: {str(e)}")
+            
+            # Fall back to simulation mode on exception if enabled
+            if self.config.get('simulation_fallback', True):
+                self.logger.warning(f"Error getting symbol info for {symbol}, switching to simulation mode")
+                self.simulation_mode = True
+                return self._get_simulated_symbol_info(symbol)
+            
             return None
+    
+    def _get_simulated_historical_data(self, symbol, timeframe, count=100, start_pos=0):
+        """
+        Get simulated historical price data for a symbol when MT5 is not available.
         
-        # Convert MT5 symbol info to a dictionary
-        return {
-            'bid': symbol_info.bid,
-            'ask': symbol_info.ask,
-            'point': symbol_info.point,
-            'digits': symbol_info.digits,
-            'spread': symbol_info.spread,
-            'volume_min': symbol_info.volume_min,
-            'volume_max': symbol_info.volume_max,
-            'volume_step': symbol_info.volume_step,
-            'trade_contract_size': symbol_info.trade_contract_size,
-            'trade_tick_value': symbol_info.trade_tick_value,
-            'trade_tick_size': symbol_info.trade_tick_size,
+        Args:
+            symbol (str): The symbol to get data for.
+            timeframe (str): The timeframe to get data for (e.g., "M5" for 5-minute).
+            count (int): The number of bars to get.
+            start_pos (int): The position to start from.
+            
+        Returns:
+            DataFrame: Simulated historical data as a pandas DataFrame
+        """
+        import numpy as np
+        from datetime import datetime, timedelta
+        
+        # Create realistic time intervals based on timeframe
+        current_time = datetime.now()
+        times = []
+        
+        # Determine time delta based on timeframe
+        if timeframe == 'M1':
+            delta = timedelta(minutes=1)
+        elif timeframe == 'M5':
+            delta = timedelta(minutes=5)
+        elif timeframe == 'M15':
+            delta = timedelta(minutes=15)
+        elif timeframe == 'M30':
+            delta = timedelta(minutes=30)
+        elif timeframe == 'H1':
+            delta = timedelta(hours=1)
+        elif timeframe == 'H4':
+            delta = timedelta(hours=4)
+        elif timeframe == 'D1':
+            delta = timedelta(days=1)
+        elif timeframe == 'W1':
+            delta = timedelta(weeks=1)
+        elif timeframe == 'MN1':
+            delta = timedelta(days=30)  # Approximate month
+        else:
+            delta = timedelta(minutes=5)  # Default to M5
+        
+        # Generate timestamps
+        for i in range(count):
+            # We need to go back in time, so the latest data is the most recent
+            # start_pos is how many bars to skip from current time
+            times.append(current_time - delta * (i + start_pos))
+        
+        # Sort times in ascending order (oldest first)
+        times.sort()
+        
+        # Get base price based on symbol
+        if symbol == "EURUSD":
+            base_price = 1.0890
+            volatility = 0.0010
+        elif symbol == "ETHUSD":
+            base_price = 3500.0
+            volatility = 50.0
+        elif symbol == "XRPUSD":
+            base_price = 0.5245
+            volatility = 0.01
+        else:  # Default BTCUSD
+            base_price = 60000.0
+            volatility = 500.0
+        
+        # Generate price data with realistic trends
+        opens = []
+        highs = []
+        lows = []
+        closes = []
+        tick_volumes = []
+        
+        # Create a slight upward/downward trend with random wobble
+        trend = np.random.choice([-1, 1]) * 0.0001 * base_price  # Small trend direction
+        current_price = base_price
+        
+        for i in range(count):
+            # Add some randomness to current price
+            price_change = np.random.normal(trend, volatility)
+            open_price = current_price
+            
+            # High is usually the larger of the random movements from open
+            high_rand = abs(np.random.normal(0, volatility))
+            # Low is usually the smaller of the random movements from open
+            low_rand = -abs(np.random.normal(0, volatility))
+            
+            high_price = open_price + high_rand
+            low_price = open_price + low_rand
+            
+            # Ensure high is always highest and low is always lowest
+            if high_price < open_price:
+                high_price = open_price + abs(high_rand / 2)
+            if low_price > open_price:
+                low_price = open_price - abs(low_rand / 2)
+            
+            # Close can be anywhere between high and low
+            close_price = open_price + np.random.uniform(low_rand, high_rand)
+            
+            # Enforce strict high/low boundaries
+            high_price = max(high_price, open_price, close_price)
+            low_price = min(low_price, open_price, close_price)
+            
+            # Update current price for the next iteration
+            current_price = close_price
+            
+            opens.append(open_price)
+            highs.append(high_price)
+            lows.append(low_price)
+            closes.append(close_price)
+            tick_volumes.append(int(np.random.uniform(100, 1000)))
+        
+        # Create DataFrame
+        data = {
+            'time': times,
+            'open': opens,
+            'high': highs,
+            'low': lows,
+            'close': closes,
+            'tick_volume': tick_volumes,
+            'spread': [int(volatility * 100) for _ in range(count)],
+            'real_volume': tick_volumes,
+            'simulated': [True for _ in range(count)]  # Mark as simulated data
         }
+        
+        df = pd.DataFrame(data)
+        
+        return df
     
     def get_historical_data(self, symbol, timeframe, count=100, start_pos=0):
         """
@@ -406,37 +655,61 @@ class MT5Connector:
         Returns:
             DataFrame: The historical data as a pandas DataFrame or None if failed.
         """
+        # If in simulation mode, return simulated data
+        if self.simulation_mode:
+            return self._get_simulated_historical_data(symbol, timeframe, count, start_pos)
+        
+        # Ensure MT5 is initialized
         if not self.ensure_initialized():
+            return self._get_simulated_historical_data(symbol, timeframe, count, start_pos) if self.simulation_mode else None
+        
+        try:
+            # Map timeframe string to MT5 timeframe constants
+            timeframe_map = {
+                'M1': mt5.TIMEFRAME_M1,
+                'M5': mt5.TIMEFRAME_M5,
+                'M15': mt5.TIMEFRAME_M15,
+                'M30': mt5.TIMEFRAME_M30,
+                'H1': mt5.TIMEFRAME_H1,
+                'H4': mt5.TIMEFRAME_H4,
+                'D1': mt5.TIMEFRAME_D1,
+                'W1': mt5.TIMEFRAME_W1,
+                'MN1': mt5.TIMEFRAME_MN1
+            }
+            
+            tf = timeframe_map.get(timeframe, mt5.TIMEFRAME_M5)
+            
+            # Get the historical data
+            rates = mt5.copy_rates_from_pos(symbol, tf, start_pos, count)
+            
+            if rates is None or len(rates) == 0:
+                error = mt5.last_error()
+                self.logger.error(f"Failed to get historical data for {symbol}. Error: {error[0]} - {error[1]}")
+                
+                # If we get a "No IPC connection" error, switch to simulation mode
+                if error[0] == -10004 and self.config.get('simulation_fallback', True):
+                    self.logger.warning(f"MT5 IPC connection lost when getting historical data for {symbol}, switching to simulation mode")
+                    self.simulation_mode = True
+                    return self._get_simulated_historical_data(symbol, timeframe, count, start_pos)
+                
+                return None
+            
+            # Convert to pandas DataFrame
+            df = pd.DataFrame(rates)
+            df['time'] = pd.to_datetime(df['time'], unit='s')
+            df['simulated'] = False  # Mark as real data
+            
+            return df
+        except Exception as e:
+            self.logger.error(f"Error getting historical data for {symbol}: {str(e)}")
+            
+            # Fall back to simulation mode on exception if enabled
+            if self.config.get('simulation_fallback', True):
+                self.logger.warning(f"Error getting historical data for {symbol}, switching to simulation mode")
+                self.simulation_mode = True
+                return self._get_simulated_historical_data(symbol, timeframe, count, start_pos)
+            
             return None
-        
-        # Map timeframe string to MT5 timeframe constants
-        timeframe_map = {
-            'M1': mt5.TIMEFRAME_M1,
-            'M5': mt5.TIMEFRAME_M5,
-            'M15': mt5.TIMEFRAME_M15,
-            'M30': mt5.TIMEFRAME_M30,
-            'H1': mt5.TIMEFRAME_H1,
-            'H4': mt5.TIMEFRAME_H4,
-            'D1': mt5.TIMEFRAME_D1,
-            'W1': mt5.TIMEFRAME_W1,
-            'MN1': mt5.TIMEFRAME_MN1
-        }
-        
-        tf = timeframe_map.get(timeframe, mt5.TIMEFRAME_M5)
-        
-        # Get the historical data
-        rates = mt5.copy_rates_from_pos(symbol, tf, start_pos, count)
-        
-        if rates is None or len(rates) == 0:
-            error = mt5.last_error()
-            self.logger.error(f"Failed to get historical data for {symbol}. Error: {error[0]} - {error[1]}")
-            return None
-        
-        # Convert to pandas DataFrame
-        df = pd.DataFrame(rates)
-        df['time'] = pd.to_datetime(df['time'], unit='s')
-        
-        return df
     
     def place_order(self, symbol, order_type, volume, price=0.0, sl=0.0, tp=0.0, comment=""):
         """

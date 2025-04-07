@@ -1,0 +1,44 @@
+python main.py
+2025-04-07 13:06:27,362 - MT5APIConnector - ERROR - Error making API call: HTTPSConnectionPool(host='mt5api.example.com', port=443): Max retries exceeded with url: /ping (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000023F4CF17F20>: Failed to resolve 'mt5api.example.com' ([Errno 11001] getaddrinfo failed)"))
+2025-04-07 13:06:27,363 - MT5APIConnector - ERROR - MT5 API initialization failed: No response from API
+2025-04-07 13:06:27,363 - MT5APIConnector - INFO - Falling back to simulation mode due to API error
+2025-04-07 13:06:27,363 - __main__ - INFO - MT5 connection initialized successfully
+2025-04-07 13:06:27,363 - LiveFeed - ERROR - Error starting live feed: 'MT5APIConnector' object has no attribute 'ensure_initialized'
+2025-04-07 13:06:27,363 - __main__ - ERROR - Failed to start price streaming
+2025-04-07 13:06:27,364 - __main__ - INFO - Trading system auto-started on application launch
+ * Serving Flask app 'main'
+ * Debug mode: on
+2025-04-07 13:06:27,381 - werkzeug - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.132.94:5000
+2025-04-07 13:06:27,381 - werkzeug - INFO - Press CTRL+C to quit
+2025-04-07 13:06:27,382 - werkzeug - INFO -  * Restarting with stat
+2025-04-07 13:06:29,178 - MT5APIConnector - ERROR - Error making API call: HTTPSConnectionPool(host='mt5api.example.com', port=443): Max retries exceeded with url: /ping (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000022824F77F20>: Failed to resolve 'mt5api.example.com' ([Errno 11001] getaddrinfo failed)"))
+2025-04-07 13:06:29,179 - MT5APIConnector - ERROR - MT5 API initialization failed: No response from API
+2025-04-07 13:06:29,179 - MT5APIConnector - INFO - Falling back to simulation mode due to API error
+2025-04-07 13:06:29,179 - __main__ - INFO - MT5 connection initialized successfully
+2025-04-07 13:06:29,179 - LiveFeed - ERROR - Error starting live feed: 'MT5APIConnector' object has no attribute 'ensure_initialized'
+2025-04-07 13:06:29,179 - __main__ - ERROR - Failed to start price streaming
+2025-04-07 13:06:29,179 - __main__ - INFO - Trading system auto-started on application launch
+2025-04-07 13:06:29,191 - werkzeug - WARNING -  * Debugger is active!
+2025-04-07 13:06:29,193 - werkzeug - INFO -  * Debugger PIN: 516-894-664
+2025-04-07 13:06:31,663 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:31] "GET / HTTP/1.1" 200 -
+2025-04-07 13:06:31,782 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:31] "GET / HTTP/1.1" 200 -
+2025-04-07 13:06:33,359 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:33] "GET / HTTP/1.1" 200 -
+2025-04-07 13:06:33,525 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:33] "GET / HTTP/1.1" 200 -
+2025-04-07 13:06:35,304 - __main__ - INFO - MT5 connection initialized successfully
+2025-04-07 13:06:35,304 - LiveFeed - ERROR - Error starting live feed: 'MT5APIConnector' object has no attribute 'ensure_initialized'
+2025-04-07 13:06:35,304 - __main__ - ERROR - Failed to start price streaming
+2025-04-07 13:06:35,305 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:35] "POST /control/start HTTP/1.1" 200 -
+2025-04-07 13:06:37,813 - __main__ - INFO - MT5 connection initialized successfully
+2025-04-07 13:06:37,813 - LiveFeed - ERROR - Error starting live feed: 'MT5APIConnector' object has no attribute 'ensure_initialized'
+2025-04-07 13:06:37,813 - __main__ - ERROR - Failed to start price streaming
+2025-04-07 13:06:37,813 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:37] "POST /control/start HTTP/1.1" 200 -
+2025-04-07 13:06:39,549 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:39] "GET / HTTP/1.1" 200 -
+2025-04-07 13:06:41,919 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:41] "GET / HTTP/1.1" 200 -
+2025-04-07 13:06:42,068 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:42] "GET / HTTP/1.1" 200 -
+2025-04-07 13:06:45,201 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:45] "GET /settings HTTP/1.1" 200 -
+2025-04-07 13:06:46,986 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:46] "POST /settings HTTP/1.1" 302 -
+2025-04-07 13:06:46,990 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:46] "GET /settings?updated=True HTTP/1.1" 200 -
+2025-04-07 13:06:49,975 - werkzeug - INFO - 192.168.132.94 - - [07/Apr/2025 13:06:49] "GET / HTTP/1.1" 200 -
